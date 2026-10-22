@@ -336,11 +336,11 @@
         "caveman"
       ],
       "phase": "sempre (estilo de resposta)",
-      "why": "Respostas telegráficas do agente para cortar tokens de saída. Muda o tom da conversa, por isso é opcional.",
+      "why": "Respostas telegráficas do agente para cortar tokens de saída.",
       "when": {
         "always": true
       },
-      "recommended": false
+      "recommended": true
     },
     {
       "id": "planning-with-files",
