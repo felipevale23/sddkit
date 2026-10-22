@@ -295,6 +295,19 @@
       "recommended": false
     },
     {
+      "id": "planning-with-files",
+      "source": "OthmanAdi/planning-with-files",
+      "skills": [
+        "planning-with-files"
+      ],
+      "phase": "tarefas longas fora do fluxo de feature",
+      "why": "Plano, achados e progresso em arquivos markdown que sobrevivem a /clear e compactação. Opcional: dentro do fluxo SDD o plan.md/tasks.md do Spec Kit já cumprem esse papel.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
+    },
+    {
       "id": "skill-creator",
       "source": "anthropics/skills",
       "skills": [
