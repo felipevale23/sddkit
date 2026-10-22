@@ -6,6 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from sddkit import specs  # noqa: E402
+from sddkit.out import Out  # noqa: E402
 
 
 def _project() -> Path:
@@ -33,7 +34,7 @@ def test_change_ids_feature_status_and_index():
     assert specs.next_change_id(specs.load_changes(root)) == "CHANGE-003"
     f = specs.load_features(root)[0]
     assert (f["id"], f["name"], f["status"], f["done"], f["total"]) == ("001", "Faturas", "In Progress", 1, 2)
-    specs.write_index(root)
+    specs.write_index(root, Out(root, {}))
     assert "| 001 | Faturas | In Progress | 1/2 | CHANGE-001 |" in (root / specs.SPECS / "features.md").read_text()
     a.write_text(a.read_text().replace("CHANGE-001", "CHANGE-002"))  # id duplicado
     checks = {msg.split(" (")[0]: ok for ok, msg, *_ in specs.drift_checks(root, {"deps": []})}

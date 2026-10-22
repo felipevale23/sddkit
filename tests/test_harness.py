@@ -107,6 +107,107 @@ def test_init_never_overwrites_specs_docs():
     assert (root / ".agents/specs/architecture.md").read_text() == "# Arquitetura real\n"
 
 
+# ───────────────────────── fonte única: gerados, blocos, templates ─────────────────────────
+def test_generated_file_edited_by_hand_is_protected():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    gen = root / ".claude/agents/sdd-analyst.md"
+    gen.write_text(gen.read_text() + "\nregra só minha\n")
+    r = sdd(root, "sync", ok=False)
+    assert r.returncode == 1 and "editado à mão" in r.stdout and "regra só minha" in gen.read_text()
+    assert sdd(root, "sync", "--check", ok=False).returncode == 1
+    assert "nenhum arquivo/bloco gerado editado à mão" in sdd(root, "doctor", ok=False).stdout
+    sdd(root, "sync", "--force")
+    assert "regra só minha" not in gen.read_text()
+    assert "✓ arquivos gerados em dia" in sdd(root, "sync", "--check").stdout
+
+
+def test_sync_check_detects_stale_output_and_writes_nothing():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    src = root / ".agents/agents/sdd-analyst.md"
+    src.write_text(src.read_text().replace("description:", "description: [editado na fonte]", 1))
+    before = snapshot(root)
+    r = sdd(root, "sync", "--check", ok=False)
+    assert r.returncode == 1 and "✗ desatualizado: .claude/agents/sdd-analyst.md" in r.stdout
+    assert snapshot(root) == before, "sync --check escreveu"
+    sdd(root, "sync")
+    assert "[editado na fonte]" in (root / ".claude/agents/sdd-analyst.md").read_text()
+    assert sdd(root, "sync", "--check").returncode == 0
+
+
+def test_agents_md_block_edit_is_kept_but_text_outside_is_free():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    p = root / "AGENTS.md"
+    p.write_text("Minha introdução.\n\n" + p.read_text().replace("## Fluxo", "## Fluxo (mexido)", 1))
+    r = sdd(root, "sync", ok=False)
+    assert "AGENTS.md#sddkit: bloco editado à mão" in r.stdout
+    assert "## Fluxo (mexido)" in p.read_text() and "Minha introdução." in p.read_text()
+    sdd(root, "sync", "--force")
+    assert "## Fluxo (mexido)" not in p.read_text() and "Minha introdução." in p.read_text()
+
+
+def test_preexisting_user_file_is_not_overwritten():
+    root = project({".claude/agents/ui.md": "---\nname: ui\n---\nmeu agente de UI\n"})
+    sdd(root, *OFFLINE_INIT)
+    sdd(root, "role", "add", "ui", "--no-skills", ok=False)
+    assert (root / ".claude/agents/ui.md").read_text().endswith("meu agente de UI\n")
+    for _ in range(2):                                                # regressão: 2º sync sobrescrevia o arquivo
+        assert "já existia e não é do sddkit" in sdd(root, "sync", ok=False).stdout
+        assert (root / ".claude/agents/ui.md").read_text().endswith("meu agente de UI\n")
+
+
+def test_obsolete_generated_file_removed_unless_edited():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    sdd(root, "role", "add", "docs", "qa", "--no-skills")
+    (root / ".claude/agents/qa.md").write_text("editado\n")
+    sdd(root, "role", "remove", "docs", ok=False)
+    sdd(root, "role", "remove", "qa", ok=False)
+    assert not (root / ".claude/agents/docs.md").exists()
+    assert (root / ".claude/agents/qa.md").read_text() == "editado\n"
+
+
+def test_templates_update_when_untouched_and_keep_local_edits():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    cfg_p = root / ".agents/sddkit.json"
+    build, change = root / ".agents/skills/sdd-build/SKILL.md", root / ".agents/skills/sdd-change/SKILL.md"
+    cfg = json.loads(cfg_p.read_text())
+    build.write_text("versão antiga do template\n")                     # simula cópia intocada de uma versão anterior
+    cfg["templates"][".agents/skills/sdd-build/SKILL.md"] = hashlib.sha256(build.read_bytes()).hexdigest()[:16]
+    cfg_p.write_text(json.dumps(cfg))
+    change.write_text(change.read_text() + "\nregra local\n")          # edição do usuário
+    out = sdd(root, "doctor", ok=False).stdout
+    assert "templates do sddkit atualizados (1 com versão nova)" in out and "sdd-change/SKILL.md" in out
+    r = sdd(root, *OFFLINE_INIT).stdout
+    assert "1 atualizado" in r and "1 editado(s) por você" in r
+    assert build.read_text() == (SRC / "sddkit/templates/skills/sdd-build/SKILL.md").read_text()
+    assert change.read_text().endswith("regra local\n")
+    sdd(root, *OFFLINE_INIT, "--force-templates")
+    assert not change.read_text().endswith("regra local\n")
+
+
+def test_claude_denies_edits_to_generated_folders():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    deny = json.loads((root / ".claude/settings.json").read_text())["permissions"]["deny"]
+    assert {"Edit(.claude/agents/**)", "Edit(.claude/rules/sddkit-memory-*)", "Edit(.opencode/agents/**)"} <= set(deny)
+
+
+def test_project_from_older_sddkit_upgrades_without_conflicts():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    cfg_p = root / ".agents/sddkit.json"
+    cfg = json.loads(cfg_p.read_text())
+    cfg.pop("hashes"), cfg.pop("templates")                            # como era antes desta versão
+    cfg_p.write_text(json.dumps(cfg))
+    r = sdd(root, "sync")
+    assert "⚠" not in r.stdout
+    assert sdd(root, "sync", "--check").returncode == 0
+
+
 # ───────────────────────── detecção / catálogo / papéis ─────────────────────────
 NODE_APP = {"package.json": json.dumps({"name": "app", "dependencies": {
     "react": "19", "express": "4", "@prisma/client": "5", "tailwindcss": "4", "@tanstack/react-query": "5"}}),

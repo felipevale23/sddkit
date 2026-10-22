@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -12,6 +13,8 @@ from importlib import resources
 from pathlib import Path
 
 from . import __version__, adapters, memory, specs
+from . import out as outmod
+from .out import Out, sha
 from .detect import detect, matches
 from .frontmatter import parse
 
@@ -70,21 +73,18 @@ def print_roles(sugs: list[dict]) -> None:
     say("  (✓ instalado · ★ recomendado)")
 
 
-def install_roles(root: Path, ids: list[str], force: bool = False) -> list[str]:
-    """Copia papéis do catálogo para .agents/agents. Retorna ids de skills sugeridas pelos papéis."""
+def install_roles(root: Path, ids: list[str], cfg: dict, force: bool = False, quiet: bool = False) -> list[str]:
+    """Copia papéis do catálogo para .agents/agents (editados são mantidos). Retorna ids de skills sugeridas."""
     cat = {r["id"]: r for r in role_catalog()}
     skills: list[str] = []
+    msg = {"criado": "✓ papel {i} → .agents/agents/{i}.md", "atualizado": "✓ papel {i} atualizado",
+           "igual": "· {i}: em dia", "editado": "· {i}: editado por você, mantido (--force substitui)"}
     for i in ids:
         if i not in cat:
             raise SystemExit(f"✗ papel '{i}' não existe. Veja `sddkit role list` ou crie com `sddkit role new {i}`.")
-        src = tpl() / "roles" / f"{i}.md"
-        dst = root / ".agents" / "agents" / f"{i}.md"
-        if dst.exists() and not force:
-            say(f"  · {i}: já existe (use --force para sobrescrever)")
-        else:
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, dst)
-            say(f"  ✓ papel {i} → .agents/agents/{i}.md")
+        r = install_template(tpl() / "roles" / f"{i}.md", root / ".agents" / "agents" / f"{i}.md", root, cfg, force)
+        if not quiet or r in ("atualizado", "editado"):
+            say("  " + msg[r].format(i=i))
         skills += cat[i].get("skills", [])
     return list(dict.fromkeys(skills))
 
@@ -137,20 +137,13 @@ def specify_cmd() -> list[str] | None:
 
 
 # ───────────────────────── AGENTS.md ─────────────────────────
-def _upsert_block(text: str, begin: str, end: str, block: str) -> str:
-    new = f"{begin}\n{block.rstrip()}\n{end}"
-    pat = re.compile(re.escape(begin) + r".*?" + re.escape(end), re.S)
-    if pat.search(text):
-        return pat.sub(lambda _: new, text)
-    return (text.rstrip() + "\n\n" if text.strip() else "") + new + "\n"
-
-
-def write_agents_md(root: Path) -> None:
+def write_agents_md(root: Path, out: Out) -> None:
     p = root / "AGENTS.md"
     text = p.read_text(encoding="utf-8") if p.exists() else ""
-    text = _upsert_block(text, BEGIN, END, (tpl() / "AGENTS.block.md").read_text(encoding="utf-8"))
+    note = "<!-- Bloco gerado pelo sddkit: edite .agents/ e rode `sddkit sync`; edições aqui são recusadas. -->\n"
+    text = out.block(text, BEGIN, END, note + (tpl() / "AGENTS.block.md").read_text(encoding="utf-8"), "AGENTS.md#sddkit")
     skills = installed_skills(root)
-    lines = ["## Skills instaladas (`.agents/skills/`)", ""]
+    lines = [note.rstrip(), "## Skills instaladas (`.agents/skills/`)", ""]
     spk = [n for n in skills if n.startswith("speckit-")]
     if spk:
         lines.append("- Spec Kit: " + ", ".join(f"`{n}`" for n in spk))
@@ -172,35 +165,65 @@ def write_agents_md(root: Path) -> None:
         else:
             when = "fluxo SDD (sdd-feature / sdd-build)"
         lines.append(f"| `{name}` | {kind} | {when} |")
-    text = _upsert_block(text, IDX_BEGIN, IDX_END, "\n".join(lines))
+    text = out.block(text, IDX_BEGIN, IDX_END, "\n".join(lines), "AGENTS.md#skills")
     mem = memory.render_agents_block(root)
-    pat = re.compile(re.escape(MEM_BEGIN) + r".*?" + re.escape(MEM_END) + r"\n?", re.S)
-    text = pat.sub("", text)
-    if mem:
+    has_mem = MEM_BEGIN in text
+    if mem and has_mem:
+        text = out.block(text, MEM_BEGIN, MEM_END, mem, "AGENTS.md#memory")
+    elif mem:
         block = f"{MEM_BEGIN}\n{mem.rstrip()}\n{MEM_END}\n"
         text = text.replace(END + "\n", END + "\n\n" + block, 1) if END + "\n" in text else text + "\n" + block
+        out.hashes["AGENTS.md#memory"] = sha(mem.rstrip())
+    elif has_mem:
+        text = re.sub(re.escape(MEM_BEGIN) + r".*?" + re.escape(MEM_END) + r"\n?", "", text, flags=re.S)
     text = re.sub(r"\n{3,}", "\n\n", text)
-    p.write_text(text, encoding="utf-8")
+    out.text(p, text, managed=False)
 
 
 # ───────────────────────── comandos ─────────────────────────
-def copy_templates(root: Path, force: bool) -> list[str]:
-    done = []
+def install_template(src: Path, dst: Path, root: Path, cfg: dict, force: bool) -> str:
+    """Copia um template do sddkit sem perder edição local.
+
+    O hash do que foi instalado fica em `templates` no sddkit.json. Cópia intocada é atualizada
+    quando o template muda; cópia editada (ou de origem desconhecida) é mantida, salvo `force`.
+    """
+    rel = dst.relative_to(root).as_posix()
+    rec = cfg.setdefault("templates", {})
+    new = src.read_bytes()
+    h = lambda b: hashlib.sha256(b).hexdigest()[:16]  # noqa: E731
+    if dst.exists():
+        cur = dst.read_bytes()
+        if cur == new:
+            rec[rel] = h(new)
+            return "igual"
+        if not force and rec.get(rel) != h(cur):
+            return "editado"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    existed = dst.exists()
+    shutil.copy2(src, dst)
+    if dst.suffix == ".py":
+        dst.chmod(0o755)
+    rec[rel] = h(new)
+    return "atualizado" if existed else "criado"
+
+
+def copy_templates(root: Path, force: bool, cfg: dict) -> dict[str, list[str]]:
+    res: dict[str, list[str]] = {}
     src = tpl()
     for sub in ("agents", "skills", "hooks"):
-        for f in sorted((src / sub).rglob("*")):
-            if f.is_dir():
-                continue
-            rel = f.relative_to(src)
-            dst = root / ".agents" / rel
-            if dst.exists() and not force:
-                continue
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(f, dst)
-            if dst.suffix == ".py":
-                dst.chmod(0o755)
-            done.append(str(dst.relative_to(root)))
-    return done
+        for f in sorted(p for p in (src / sub).rglob("*") if p.is_file()):
+            dst = root / ".agents" / f.relative_to(src)
+            res.setdefault(install_template(f, dst, root, cfg, force), []).append(dst.relative_to(root).as_posix())
+    return res
+
+
+def template_summary(res: dict[str, list[str]]) -> str:
+    parts = [f"{len(res[k])} {k}" for k in ("criado", "atualizado") if res.get(k)]
+    line = ", ".join(parts) or "nada mudou"
+    if res.get("editado"):
+        line += (f"; {len(res['editado'])} editado(s) por você, mantido(s): " + ", ".join(res["editado"][:5])
+                 + (" …" if len(res["editado"]) > 5 else "") + " — `sddkit init --force-templates` substitui")
+    return line
 
 
 def scaffold_specs(root: Path) -> list[str]:
@@ -260,13 +283,12 @@ def cmd_init(args) -> int:
             return 1
 
     # 2. Camada sdd (papéis + skills de orquestração)
-    new = copy_templates(root, args.force_templates)
-    if args.force_templates:
-        cat_ids = {r["id"] for r in role_catalog()}
-        stale = [n for n in installed_roles(root) if n in cat_ids]
-        if stale:
-            install_roles(root, stale, force=True)
-    say(f"• Camada sdd: {len(new)} arquivo(s) em .agents/ " + ("(existentes mantidos)" if not args.force_templates else "(sobrescritos)"))
+    res = copy_templates(root, args.force_templates, cfg)
+    say(f"• Camada sdd: {template_summary(res)}")
+    cat_ids = {r["id"] for r in role_catalog()}
+    stale = [n for n in installed_roles(root) if n in cat_ids]
+    if stale:  # papéis do catálogo já instalados: atualiza os intocados
+        install_roles(root, stale, cfg, force=args.force_templates, quiet=True)
     created = scaffold_specs(root)
     say(f"• Specs: {specs.SPECS}/ " + (f"criado ({len(created)} arquivo(s)) — preencha architecture.md, stack.md…" if created else "já existe — mantido"))
 
@@ -301,7 +323,7 @@ def cmd_init(args) -> int:
     role_skill_ids: list[str] = []
     if role_ids:
         say(f"\n• Papéis: {', '.join(role_ids)}")
-        role_skill_ids = install_roles(root, role_ids)
+        role_skill_ids = install_roles(root, role_ids, cfg)
     ids = select_skills(args, root, info, cfg, extra=role_skill_ids)
     if ids:
         install(root, ids, cfg)
@@ -432,16 +454,33 @@ def install(root: Path, ids: list[str], cfg: dict) -> bool:
     return ok
 
 
-def do_sync(root: Path, cfg: dict) -> None:
-    write_agents_md(root)
-    say("\n• AGENTS.md atualizado (blocos sddkit)")
-    if specs.write_index(root):
-        say(f"• {specs.SPECS}/features.md atualizado")
-    gen, log = adapters.run(root, cfg["adapters"], cfg["mode"], cfg.get("generated", []))
-    cfg["generated"] = gen
+def do_sync(root: Path, cfg: dict, check: bool = False, force: bool = False) -> Out:
+    """Regenera AGENTS.md, índice e adaptadores a partir de .agents/. `check`: só compara, não escreve."""
+    out = outmod.OUT = Out(root, cfg, check=check, force=force)
+    write_agents_md(root, out)
+    specs.write_index(root, out)
+    gen, log = adapters.run(root, cfg["adapters"], cfg["mode"], cfg.get("generated", []), out)
+    if not check:
+        cfg["generated"], cfg["hashes"] = gen, dict(sorted(out.hashes.items()))
+        save_cfg(root, cfg)
+        say("\n• AGENTS.md, índice de specs e adaptadores sincronizados" + (f" ({len(out.changes)} arquivo(s) alterado(s))" if out.changes else " (nada mudou)"))
+        for line in log:
+            say(f"  {line}")
+        for line in out.report():
+            say(line)
+    outmod.OUT = None
+    return out
+
+
+def refresh_index(root: Path) -> None:
+    """Atualiza só o features.md (fora do sync), mantendo o hash do bloco no sddkit.json."""
+    cfg = load_cfg(root)
+    out = Out(root, cfg)
+    specs.write_index(root, out)
+    cfg.setdefault("hashes", {}).update(out.hashes)
     save_cfg(root, cfg)
-    for line in log:
-        say(f"  {line}")
+    for line in out.report():
+        say(line)
 
 
 def cmd_suggest(args) -> int:
@@ -476,8 +515,16 @@ def cmd_sync(args) -> int:
         cfg["adapters"] = [] if args.agents == "none" else parse_list(args.agents)
     if args.copy:
         cfg["mode"] = "copy"
-    do_sync(root, cfg)
-    return 0
+    out = do_sync(root, cfg, check=args.check, force=args.force)
+    if args.check:
+        for rel in out.changes:
+            say(f"✗ desatualizado: {rel}")
+        for line in out.report():
+            say(line)
+        say("✓ arquivos gerados em dia com .agents/" if not (out.changes or out.conflicts)
+            else "\n→ rode `sddkit sync` e faça commit do resultado")
+        return 1 if out.changes or out.conflicts else 0
+    return 1 if out.conflicts else 0
 
 
 ROLE_SKELETON = """---
@@ -516,14 +563,14 @@ def cmd_role(args) -> int:
     if args.action == "update":
         cat_ids = {r["id"] for r in role_catalog()}
         names = args.names or [n for n in installed_roles(root) if n in cat_ids]
-        install_roles(root, names, force=True)
+        install_roles(root, names, cfg, force=True)
         do_sync(root, cfg)
         return 0
     if not args.names:
         say("✗ informe ao menos um papel")
         return 2
     if args.action == "add":
-        skills = install_roles(root, args.names, args.force)
+        skills = install_roles(root, args.names, cfg, args.force)
         if skills and not args.no_skills:
             info = detect(root)
             have = set(installed_skills(root))
@@ -595,17 +642,17 @@ def cmd_change(args) -> int:
     f = specs.new_change(root, " ".join(args.title), args.feature, args.priority)
     meta, _ = parse(f.read_text(encoding="utf-8"))
     say(f"✓ {meta['id']} → {f.relative_to(root)} (status: Proposed)")
-    specs.write_index(root)
+    refresh_index(root)
     return 0
 
 
 def cmd_index(args) -> int:
     root = Path(args.dir).resolve()
-    p = specs.write_index(root)
-    if not p:
+    if not (root / specs.SPECS).is_dir():
         say(f"✗ {specs.SPECS}/ não existe — rode `sddkit init`.")
         return 1
-    say(f"✓ {p.relative_to(root)}")
+    refresh_index(root)
+    say(f"✓ {specs.SPECS}/features.md")
     return 0
 
 
@@ -613,7 +660,7 @@ def cmd_playbook(args) -> int:
     root = Path(args.dir).resolve()
     f = specs.new_playbook(root, " ".join(args.name))
     say(f"✓ {f.relative_to(root)}")
-    specs.write_index(root)
+    refresh_index(root)
     return 0
 
 
@@ -751,6 +798,29 @@ def cmd_doctor(args) -> int:
     rpend = [r["id"] for r in role_suggestions(root, info) if r["recommended"] and not r["installed"]]
     check(not rpend, "papéis recomendados instalados" + (f" (faltam: {', '.join(rpend)})" if rpend else ""), "sddkit role add " + " ".join(rpend))
     check(not pend, "skills recomendadas instaladas" + (f" (faltam: {', '.join(pend)})" if pend else ""), "sddkit add " + " ".join(pend))
+    say("\nFonte única (.agents/ → arquivos gerados):")
+    sync = do_sync(root, cfg, check=True)
+    check(not sync.changes, "arquivos gerados em dia com .agents/", "sddkit sync")
+    for rel in sync.changes[:8]:
+        say(f"      · {rel}")
+    check(not sync.conflicts, "nenhum arquivo/bloco gerado editado à mão",
+          "leve a edição para .agents/ e rode `sddkit sync` (ou `sddkit sync --force` para descartá-la)")
+    for rel, why in sync.conflicts[:8]:
+        say(f"      · {rel}: {why}")
+    rec, edited, old_tpl = cfg.get("templates", {}), [], []
+    srcs = [(f, root / ".agents" / f.relative_to(tpl())) for sub in ("agents", "skills", "hooks")
+            for f in (tpl() / sub).rglob("*") if f.is_file()]
+    srcs += [(tpl() / "roles" / f"{n}.md", root / ".agents" / "agents" / f"{n}.md") for n in installed_roles(root)
+             if (tpl() / "roles" / f"{n}.md").exists()]
+    for src, dst in srcs:
+        if dst.exists() and dst.read_bytes() != src.read_bytes():
+            r = dst.relative_to(root).as_posix()
+            (old_tpl if rec.get(r) == hashlib.sha256(dst.read_bytes()).hexdigest()[:16] else edited).append(r)
+    check(not old_tpl, "templates do sddkit atualizados" + (f" ({len(old_tpl)} com versão nova)" if old_tpl else ""), "sddkit init")
+    if edited:
+        say(f"  · {len(edited)} template(s) editado(s) localmente (versão nova não aplicada): {', '.join(edited[:5])}"
+            + (" …" if len(edited) > 5 else "") + " — compare e use `sddkit init --force-templates` se quiser a versão nova")
+
     say("\nSpecs (drift):")
     for ok, msg, fix, details in specs.drift_checks(root, info):
         check(ok, msg, fix)
@@ -812,6 +882,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("dir", nargs="?", default=".")
     p.add_argument("--agents", help="redefine adaptadores: claude,opencode,gemini | none")
     p.add_argument("--copy", action="store_true")
+    p.add_argument("--check", action="store_true", help="não escreve; sai com 1 se algum arquivo gerado estiver desatualizado ou editado à mão (CI)")
+    p.add_argument("--force", action="store_true", help="sobrescreve arquivos/blocos gerados que foram editados à mão")
     p.set_defaults(fn=cmd_sync)
 
     p = sub.add_parser("change", help="change requests em .agents/specs/changes (id CHANGE-NNN sequencial)")

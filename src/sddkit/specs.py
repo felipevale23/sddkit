@@ -141,11 +141,15 @@ def index_text(root: Path) -> str:
     return pat.sub(lambda _: block, text) if pat.search(text) else text.rstrip() + "\n\n" + block + "\n"
 
 
-def write_index(root: Path) -> Path | None:
+def write_index(root: Path, out) -> Path | None:
+    """Atualiza o bloco do índice em features.md via `out` (sddkit.out.Out): bloco editado à mão vira conflito."""
     if not (root / SPECS).is_dir():
         return None
     p = root / SPECS / "features.md"
-    p.write_text(index_text(root), encoding="utf-8")
+    text = p.read_text(encoding="utf-8") if p.exists() else (
+        "# Índice de specs\n\nGerado por `sddkit index` entre os marcadores; o texto fora deles é seu.\n")
+    text = out.block(text, IDX_BEGIN, IDX_END, render_index(root), f"{SPECS.as_posix()}/features.md#index")
+    out.text(p, text, managed=False)
     return p
 
 

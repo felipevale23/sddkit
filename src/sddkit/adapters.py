@@ -12,6 +12,7 @@ import shutil
 from pathlib import Path
 
 from .frontmatter import dump_yaml, parse
+from .out import Out
 
 GEN_NOTE = "<!-- Gerado por `sddkit sync` a partir de .agents/agents/{name}.md — edite lá, não aqui. -->"
 
@@ -48,9 +49,10 @@ def _as_list(v) -> list:
 
 
 def _write(path: Path, text: str, generated: list[str], root: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-    generated.append(str(path.relative_to(root)))
+    OUT.text(path, text)
+    rel = str(path.relative_to(root))
+    if all(c[0] != rel for c in OUT.conflicts):  # conflito não vira "gerenciado" (senão o próximo sync sobrescreveria)
+        generated.append(rel)
 
 
 def _merge_json(path: Path, mutate) -> None:
@@ -61,16 +63,31 @@ def _merge_json(path: Path, mutate) -> None:
         except json.JSONDecodeError:
             raise SystemExit(f"✗ {path} não é JSON válido; corrija e rode `sddkit sync` de novo.")
     mutate(data)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    OUT.text(path, json.dumps(data, indent=2, ensure_ascii=False) + "\n", managed=False)  # mescla: chaves do usuário ficam
+
+
+def _same_tree(a: Path, b: Path) -> bool:
+    if a.is_file() or b.is_file():
+        return a.is_file() and b.is_file() and a.read_bytes() == b.read_bytes()
+    if not b.is_dir():
+        return False
+    na, nb = sorted(x.name for x in a.iterdir()), sorted(x.name for x in b.iterdir())
+    return na == nb and all(_same_tree(a / n, b / n) for n in na)
 
 
 def _link_or_copy(src: Path, dst: Path, mode: str, root: Path, generated: list[str]) -> str:
     """Retorna descrição da ação. Nunca sobrescreve diretório real do usuário."""
-    if dst.is_symlink():
-        if dst.resolve() == src.resolve() and mode == "link":
-            generated.append(str(dst.relative_to(root)))
+    rel = str(dst.relative_to(root))
+    if dst.is_symlink() and dst.resolve() == src.resolve() and mode == "link":
+        generated.append(rel)
+        return "ok"
+    if OUT.check:  # só compara
+        generated.append(rel)
+        if mode == "copy" and not dst.is_symlink() and _same_tree(src, dst):
             return "ok"
+        OUT.changes.append(rel)
+        return "desatualizado"
+    if dst.is_symlink():
         dst.unlink()
     elif dst.exists():
         rel = str(dst.relative_to(root))
@@ -88,6 +105,7 @@ def _link_or_copy(src: Path, dst: Path, mode: str, root: Path, generated: list[s
 
 
 generated_prev: set[str] = set()
+OUT: Out  # definido por run()
 
 
 def claude(root: Path, mode: str, generated: list[str]) -> list[str]:
@@ -128,13 +146,9 @@ def claude(root: Path, mode: str, generated: list[str]) -> list[str]:
         log.append(f".claude/rules: {len(rules)} memória(s) por área")
 
     cm = root / "CLAUDE.md"
-    if not cm.exists():
-        cm.write_text("@AGENTS.md\n", encoding="utf-8")
-        log.append("CLAUDE.md criado (@AGENTS.md)")
-    elif "@AGENTS.md" not in cm.read_text(encoding="utf-8"):
-        with cm.open("a", encoding="utf-8") as fh:
-            fh.write("\n@AGENTS.md\n")
-        log.append("CLAUDE.md: import @AGENTS.md adicionado")
+    cur = cm.read_text(encoding="utf-8") if cm.exists() else ""
+    if "@AGENTS.md" not in cur and OUT.text(cm, (cur.rstrip() + "\n\n" if cur.strip() else "") + "@AGENTS.md\n", managed=False):
+        log.append("CLAUDE.md: import @AGENTS.md " + ("adicionado" if cur else "criado"))
 
     allow = ["Bash(.specify/scripts/bash/:*)", "Bash(bash .specify/scripts/bash/:*)",
              "Bash(.specify/extensions/git/scripts/bash/:*)",
@@ -144,7 +158,8 @@ def claude(root: Path, mode: str, generated: list[str]) -> list[str]:
              "Bash(git commit:*)", "Read(specs/**)", "Read(.specify/**)", "Read(.agents/**)"]
     deny = ["Read(**/.env)", "Read(**/.env.local)", "Read(**/.env.*.local)", "Read(**/.env.production)",
             "Read(**/*.pem)", "Read(**/*.key)", "Read(**/id_rsa*)", "Read(**/id_ed25519*)",
-            "Edit(.agents/hooks/**)",
+            "Edit(.agents/hooks/**)", "Edit(.claude/agents/**)", "Edit(.claude/rules/sddkit-memory-*)",
+            "Edit(.opencode/agents/**)",
             "Edit(.agents/skills/speckit-*/**)", "Edit(.specify/scripts/**)",
             "Edit(.specify/templates/**)", "Bash(git push --force:*)", "Bash(git push -f:*)"]
 
@@ -195,9 +210,9 @@ def gemini(root: Path, mode: str, generated: list[str]) -> list[str]:
 RUNNERS = {"claude": claude, "opencode": opencode, "gemini": gemini}
 
 
-def run(root: Path, adapters: list[str], mode: str, previous: list[str]) -> tuple[list[str], list[str]]:
-    global generated_prev
-    generated_prev = set(previous)
+def run(root: Path, adapters: list[str], mode: str, previous: list[str], out: Out) -> tuple[list[str], list[str]]:
+    global generated_prev, OUT
+    generated_prev, OUT = set(previous), out
     generated: list[str] = []
     log: list[str] = []
     # limpa arquivos gerados antes que não serão regenerados (ex.: papel removido)
@@ -205,10 +220,6 @@ def run(root: Path, adapters: list[str], mode: str, previous: list[str]) -> tupl
         log += [f"[{a}] {line}" for line in RUNNERS[a](root, mode, generated)]
     for rel in sorted(generated_prev - set(generated)):
         p = root / rel
-        if p.is_symlink() or p.is_file():
-            p.unlink()
-            log.append(f"removido (obsoleto): {rel}")
-        elif p.is_dir():
-            shutil.rmtree(p)
+        if (p.is_symlink() or p.exists()) and out.remove(p):
             log.append(f"removido (obsoleto): {rel}")
     return generated, log

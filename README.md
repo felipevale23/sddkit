@@ -256,10 +256,11 @@ sddkit init                    # detecta a stack pelo código e sugere papéis/s
 | forçar um especialista numa tarefa | escrever `[@api]` na linha da tarefa em `tasks.md` |
 | commits padronizados e sem atribuição de IA | `sddkit commitlint` |
 | passar a usar outra ferramenta | `sddkit sync --agents claude,opencode` |
-| atualizar após upgrade do sddkit | `sddkit init --force-templates` (sobrescreve skills `sdd-*`, hooks e papéis do catálogo; specs e memória ficam intactos) |
+| atualizar após upgrade do sddkit | `sddkit init` (atualiza o que você não editou; o que editou é mantido e listado) |
+| conferir no CI que nada gerado está desatualizado | `sddkit sync --check` |
 | saber o que está errado | `sddkit doctor` |
 
-**Regra de ouro:** você edita arquivos em `.agents/` (e o texto fora dos marcadores no `AGENTS.md`); depois roda `sddkit sync`. Arquivos em `.claude/`, `.opencode/`, `.gemini/` são **gerados**: editar ali é perder a edição no próximo sync.
+**Regra de ouro:** você edita arquivos em `.agents/` (e o texto fora dos marcadores no `AGENTS.md`); depois roda `sddkit sync`. Arquivos em `.claude/`, `.opencode/`, `.gemini/` são **gerados** a partir deles. Se alguém editar um gerado, o `sync` **recusa sobrescrever** e avisa, para a edição ir para a fonte (veja a [seção 6](#6-onde-fica-cada-coisa)).
 
 ---
 
@@ -272,15 +273,40 @@ sddkit init                    # detecta a stack pelo código e sugere papéis/s
 | `.agents/specs/**` | você | ✅ (o `init` nunca sobrescreve) |
 | `.agents/specs/features.md` entre marcadores | sddkit (`index`) | ❌ regenerado |
 | `.agents/memory/*.md` | você | ✅ depois `sddkit sync` |
-| `.agents/agents/*.md` (papéis) | você (vieram de templates) | ✅ depois `sddkit sync`; mas `role update` e `init --force-templates` reaplicam o template por cima |
-| `.agents/skills/sdd-*` | sddkit (templates) | ✅ mas `init --force-templates` sobrescreve |
+| `.agents/agents/*.md` (papéis) | você (vieram de templates) | ✅ depois `sddkit sync`; o `init` só atualiza papéis que você não editou |
+| `.agents/skills/sdd-*` | sddkit (templates) | ✅ o `init` mantém sua edição; `--force-templates` sobrescreve |
 | `.agents/skills/speckit-*` | Spec Kit | ❌ |
 | `.agents/skills/<outras>` | o autor da skill (`npx skills`) | ❌ atualize com `npx skills update` |
 | `.agents/skills/<sua-skill>` | você | ✅ |
-| `.agents/hooks/*` | sddkit | ❌ |
+| `.agents/hooks/*` | sddkit (templates) | ❌ |
 | `.specify/memory/constitution.md` | você (via `/speckit-constitution`) | ✅ |
 | `.specify/` (resto) | Spec Kit | ❌ |
 | `.claude/`, `.opencode/`, `.gemini/`, `CLAUDE.md` | sddkit (adaptadores) | ❌ exceto conteúdo seu já existente, que é preservado |
+
+### Como a fonte única é garantida
+O sddkit guarda em `.agents/sddkit.json` o hash de tudo que gera e de tudo que instala:
+
+- **Gerado editado à mão** (arquivo em `.claude/agents/`, bloco do `AGENTS.md`, índice do `features.md`): o `sync` não sobrescreve. Ele avisa (`⚠ … editado à mão`) e sai com código 1. Leve a edição para a fonte em `.agents/` e rode `sddkit sync`, ou descarte-a com `sddkit sync --force`.
+- **Arquivo que já existia** com o mesmo nome de um gerado (ex.: um `.claude/agents/ui.md` seu, de antes do sddkit): nunca é sobrescrito sem `--force`.
+- **Gerado que ficou obsoleto** (ex.: papel removido): é apagado, a menos que tenha sido editado.
+- **Templates do sddkit** (skills `sdd-*`, hooks, papéis do catálogo): o `sddkit init` atualiza os que você não editou e mantém os editados, listando-os. `--force-templates` substitui todos.
+- **Agentes**: no Claude Code, editar `.claude/agents/**`, `.claude/rules/sddkit-memory-*` e `.opencode/agents/**` é negado por permissão. O agente é levado a editar a fonte.
+- **CI**: `sddkit sync --check` não escreve nada e falha se algum gerado estiver desatualizado ou editado. Coloque no pipeline:
+
+```yaml
+# .github/workflows/sddkit.yml
+name: sddkit
+on: [pull_request]
+jobs:
+  sync-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uvx --from git+https://github.com/felipevale23/sddkit sddkit sync --check
+```
+
+> Arquivos não são marcados como somente leitura de propósito: o git não guarda essa permissão (um clone volta a ter tudo gravável) e agentes e editores costumam falhar de jeito confuso. O hash + `--check` dá a mesma garantia sem esses efeitos.
 
 ### Uma feature por dentro
 ```
@@ -458,6 +484,8 @@ sddkit doctor
 
 **Instalação:** Spec Kit, Node, git, `.specify/`, blocos no `AGENTS.md`, tamanho do `AGENTS.md`, `CLAUDE.md` importando `@AGENTS.md`, skills núcleo, papéis, constituição preenchida, adaptadores gerados, papéis e skills recomendados.
 
+**Fonte única:** gerados em dia com `.agents/` (o mesmo que `sync --check`), nenhum gerado editado à mão, templates do sddkit atualizados (e quais você editou).
+
 **Drift** (specs que deixaram de dizer a verdade):
 
 | Checagem | Pega |
@@ -488,7 +516,7 @@ sddkit change new "título" [--feature NNN|none] [--priority Low|Medium|High|Cri
 sddkit playbook new "nome"
 sddkit index                                  # regenera .agents/specs/features.md
 sddkit commitlint [--no-install]
-sddkit sync [--agents …] [--copy]             # regenera AGENTS.md e adaptadores a partir de .agents/
+sddkit sync [--agents …] [--copy] [--check] [--force]   # regenera AGENTS.md, índice e adaptadores a partir de .agents/
 sddkit doctor
 ```
 
@@ -510,7 +538,7 @@ sddkit doctor
 
 **O agente não reconhece `/sdd-feature`.** Peça: "leia e siga `.agents/skills/sdd-feature/SKILL.md` com: <descrição>".
 
-**Editei algo em `.claude/agents/` e sumiu.** Arquivos de adaptador são gerados. Edite a fonte em `.agents/agents/` e rode `sddkit sync`.
+**O `sync` diz "editado à mão" e não atualizou um arquivo.** Alguém editou um arquivo gerado. Leve a edição para a fonte em `.agents/` e rode `sddkit sync`; se a edição não importa, `sddkit sync --force`.
 
 **Onde o Spec Kit guarda as coisas?** O motor fica em `.specify/` na raiz (é do Spec Kit; não mexa). As features ficam em `.agents/specs/features/`, porque o `/sdd-feature` informa esse caminho ao Spec Kit. Se você rodar `/speckit-specify` direto, passe `SPECIFY_FEATURE_DIRECTORY=.agents/specs/features/NNN-slug`, ou ele cria em `specs/`.
 
@@ -518,7 +546,7 @@ sddkit doctor
 
 **Uma skill de comunidade é segura?** Ela é um texto que o agente segue, às vezes com scripts. Leia o `SKILL.md` antes. O sddkit marca as de comunidade e avisa quando uma skill instala hooks, baixa binários ou envia dados.
 
-**Como atualizo o sddkit num projeto?** `uv tool upgrade sddkit` e depois `sddkit init --force-templates`: atualiza skills `sdd-*`, hooks e papéis do catálogo **sobrescrevendo edições suas nesses arquivos** (faça commit antes e compare com `git diff`); specs, memória, constituição e papéis criados com `role new` ficam intactos. Rode `sddkit doctor` no fim.
+**Como atualizo o sddkit num projeto?** `uv tool upgrade sddkit` e depois `sddkit init`: atualiza skills `sdd-*`, hooks e papéis do catálogo que você **não** editou; os editados são mantidos e listados (o `doctor` também mostra). Para forçar a versão nova neles: `sddkit init --force-templates` (faça commit antes e compare com `git diff`). Specs, memória, constituição e papéis criados com `role new` nunca são tocados.
 
 **O `AGENTS.md` está enorme.** Mova fatos para tópicos com `--paths` (`sddkit memory add … --paths`) e procedimentos para skills do projeto.
 
