@@ -38,6 +38,14 @@ def catalog() -> list[dict]:
     return json.loads((resources.files("sddkit") / "catalog.json").read_text(encoding="utf-8"))["entries"]
 
 
+# Publicadores conhecidos (empresas com processo de segurança próprio); o resto é comunidade.
+OFFICIAL_PUBLISHERS = {"anthropics", "vercel-labs", "cloudflare", "trailofbits"}
+
+
+def tier(source: str) -> str:
+    return "oficial" if source.split("/", 1)[0].lower() in OFFICIAL_PUBLISHERS else "comunidade"
+
+
 def role_catalog() -> list[dict]:
     return json.loads((resources.files("sddkit") / "catalog.json").read_text(encoding="utf-8")).get("roles", [])
 
@@ -298,16 +306,16 @@ def suggestions(root: Path, info: dict) -> list[dict]:
     out = []
     for e in catalog():
         if matches(e, info):
-            out.append({**e, "installed": all(s in have for s in e["skills"])})
-    return out
+            out.append({**e, "tier": tier(e["source"]), "installed": all(s in have for s in e["skills"])})
+    return sorted(out, key=lambda e: e["tier"] != "oficial")
 
 
 def print_suggestions(sugs: list[dict]) -> None:
     for i, e in enumerate(sugs, 1):
         mark = "✓" if e["installed"] else ("★" if e["recommended"] else " ")
-        say(f"  {i:2}. {mark} {e['id']:30} [{e['phase']}]")
+        say(f"  {i:2}. {mark} {e['id']:30} [{e['phase']}] · {e['tier']} ({e['source']})")
         say(f"        {e['why']}")
-    say("  (✓ instalada · ★ recomendada)")
+    say("  (✓ instalada · ★ recomendada · oficial = publicador conhecido · comunidade = revise antes de usar)")
 
 
 def select_roles(args, root: Path, info: dict) -> list[str]:
@@ -395,7 +403,7 @@ def install(root: Path, ids: list[str], cfg: dict) -> bool:
             say(f"  ✗ falhou: {src}\n    " + "\n    ".join(tail))
             ok = False
         else:
-            say(f"  ✓ {src}: {', '.join(skills)}")
+            say(f"  ✓ {src}: {', '.join(skills)}" + ("" if tier(src) == "oficial" else "  ⚠ comunidade — revise antes de usar"))
     have = set(installed_skills(root))
     cat = {e["id"]: e for e in catalog()}
     for i in ids:

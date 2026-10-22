@@ -113,6 +113,8 @@ Três camadas — da que depende do modelo à que não depende:
 ## Catálogo de sugestões
 `src/sddkit/catalog.json`. A detecção varre a raiz e pacotes de monorepo (até 3 níveis: `package.json`, `pyproject.toml`, `requirements*.txt`). Cada entrada traz fonte, skills (com dependências: `grill-me` instala `grilling`), em que fase do SDD ajuda e quando sugerir (`always`, `has_code` ou `stacks` detectadas a partir de package.json, pyproject, go.mod, vercel.json…). Recomendadas (★) são instaladas por padrão.
 
+**Níveis de publicador.** `suggest` lista primeiro as skills **oficiais** (publicadores conhecidos: `anthropics`, `vercel-labs`, `cloudflare`, `trailofbits` — `OFFICIAL_PUBLISHERS` em `cli.py`) e depois as de **comunidade** (indivíduos e projetos independentes), que o `add` marca com ⚠ para revisão. Entradas com efeitos fora do projeto (hooks, downloads de binário, upload, instalação global) trazem um aviso ⚠ na descrição.
+
 | Sempre | Stack |
 |---|---|
 | ★ grill-me, ★ tdd, ★ diagnosing-bugs, ★ ponytail, ★ find-skills, ★ git-guardrails-claude-code, ★ superpowers, grill-with-docs, caveman, planning-with-files, domain-modeling, ★ skill-creator | node: ★ setup-pre-commit · react/next: ★ vercel-react-best-practices · frontend: ★ frontend-design, ★ impeccable, web-design-guidelines, webapp-testing, ★ playwright · react-native · mobile/desktop (iOS/macOS, React Native, Flutter, Tauri, Electron): ★ apple-design · mcp: ★ mcp-builder · SDK Anthropic: ★ claude-api · código existente: ★ improve-codebase-architecture, ★ security-audit · claude-code-kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs, route-tester |

@@ -200,7 +200,7 @@
         "impeccable"
       ],
       "phase": "/sdd-build (UI) e revisão de UI",
-      "why": "Linguagem de design para UI: hierarquia, tipografia, cor, movimento, acessibilidade, responsivo e estados de borda; também critica, audita e documenta o design system (DESIGN.md, tokens).",
+      "why": "Linguagem de design para UI: hierarquia, tipografia, cor, movimento, acessibilidade, responsivo e estados de borda; também critica, audita e documenta o design system (DESIGN.md, tokens). ⚠ Baixa um binário nativo dos releases do GitHub do autor para ~/.impeccable (sha256 vem do mesmo lugar) e pode instalar hooks nas configs do agente.",
       "when": {
         "stacks": [
           "frontend"
@@ -230,7 +230,7 @@
         "playwright-skill"
       ],
       "phase": "/sdd-build + converge",
-      "why": "Automação de navegador com Playwright: detecta o dev server, gera scripts reutilizáveis, screenshots, checagem responsiva, fluxos de login e links quebrados.",
+      "why": "Automação de navegador com Playwright: detecta o dev server, gera scripts reutilizáveis, screenshots, checagem responsiva, fluxos de login e links quebrados. ⚠ Executa JS arbitrário via node e baixa navegadores do Playwright.",
       "when": {
         "stacks": [
           "frontend"
@@ -245,7 +245,7 @@
         "deploy-to-vercel"
       ],
       "phase": "entrega",
-      "why": "Deploy de previews/produção na Vercel.",
+      "why": "Deploy de previews/produção na Vercel. ⚠ Envia um tarball do projeto (sem .git/.env) ao endpoint de deploy da Vercel; pede confirmação antes.",
       "when": {
         "stacks": [
           "vercel"
@@ -306,7 +306,7 @@
         "find-skills"
       ],
       "phase": "manutenção",
-      "why": "Descobre e instala skills do ecossistema skills.sh quando o agente precisa de uma capacidade que o projeto ainda não tem.",
+      "why": "Descobre e instala skills do ecossistema skills.sh quando o agente precisa de uma capacidade que o projeto ainda não tem. ⚠ Sugere `npx skills add ... -g -y`: instala globalmente sem revisão. Prefira `sddkit add` no projeto.",
       "when": {
         "always": true
       },
@@ -349,7 +349,7 @@
         "planning-with-files"
       ],
       "phase": "tarefas longas fora do fluxo de feature",
-      "why": "Plano, achados e progresso em arquivos markdown que sobrevivem a /clear e compactação. Opcional: dentro do fluxo SDD o plan.md/tasks.md do Spec Kit já cumprem esse papel.",
+      "why": "Plano, achados e progresso em arquivos markdown que sobrevivem a /clear e compactação. Opcional: dentro do fluxo SDD o plan.md/tasks.md do Spec Kit já cumprem esse papel. ⚠ Declara hooks que rodam scripts shell a cada prompt e chamada de ferramenta; sob pedido explícito, lê transcrições do Claude Code em ~/.claude/projects.",
       "when": {
         "always": true
       },
