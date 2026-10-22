@@ -26,7 +26,8 @@ NODE_MAP = {
 NODE_MAP.update({"bullmq": {"queue"}, "bull": {"queue"}, "bee-queue": {"queue"}, "pg-boss": {"queue"},
                  "amqplib": {"queue"}, "kafkajs": {"queue"}, "zod": {"zod"}, "fast-check": {"fast-check"},
                  "tailwindcss": {"tailwind"}, "@mui/material": {"mui"},
-                 "@tanstack/react-query": {"tanstack-query"}, "@tanstack/react-router": {"tanstack-router"}})
+                 "@tanstack/react-query": {"tanstack-query"}, "@tanstack/react-router": {"tanstack-router"},
+                 "electron": {"desktop"}, "@tauri-apps/api": {"desktop"}})
 PY_PDF = {"pdfplumber", "pymupdf", "fitz", "pypdf", "pypdf2", "pdfminer.six", "pdfminer", "camelot-py",
           "tabula-py", "pytesseract", "pdf2image", "docling", "unstructured"}
 PY_MAP = {"bullmq": {"queue"}, "celery": {"queue"}, "rq": {"queue"}, "pydantic": {"pydantic"},
@@ -121,7 +122,7 @@ def detect(root: Path) -> dict:
     for f, tag in [("docker-compose.yml", "docker"), ("compose.yaml", "docker"), ("compose.yml", "docker"),
                    (".github/workflows", "ci"), (".gitlab-ci.yml", "ci"), ("terraform", "iac"),
                    ("migrations", "db"), ("prisma/schema.prisma", "db"), ("alembic.ini", "db"),
-                   ("components.json", "shadcn")]:
+                   ("components.json", "shadcn"), ("src-tauri", "desktop"), ("Package.swift", "apple")]:
         if (root / f).exists():
             stacks.add(tag)
             evidence.append(f)
@@ -129,6 +130,8 @@ def detect(root: Path) -> dict:
         stacks.add("polyglot")
     if any(root.glob("*.tf")):
         stacks.add("iac")
+    if any(root.glob("*.xcodeproj")):
+        stacks.add("apple")
     if (root / ".vercel").is_dir():
         stacks.add("vercel")
     if (root / "index.html").is_file():

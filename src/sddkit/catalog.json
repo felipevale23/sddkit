@@ -146,6 +146,24 @@
       "recommended": true
     },
     {
+      "id": "apple-design",
+      "source": "dickwu/apple-design-skill",
+      "skills": [
+        "apple-design"
+      ],
+      "phase": "/sdd-build (UI) e revisão de UI",
+      "why": "Revisão de UI/UX de apps mobile e desktop com base no Apple HIG: componentes, acessibilidade, dark mode, navegação, ícones e rejeições da App Review por design.",
+      "when": {
+        "stacks": [
+          "apple",
+          "react-native",
+          "flutter",
+          "desktop"
+        ]
+      },
+      "recommended": true
+    },
+    {
       "id": "web-design-guidelines",
       "source": "vercel-labs/agent-skills",
       "skills": [
