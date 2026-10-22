@@ -501,6 +501,19 @@
       "recommended": true
     },
     {
+      "id": "security-audit",
+      "source": "cloudflare/security-audit-skill",
+      "skills": [
+        "security-audit"
+      ],
+      "phase": "auditoria do código inteiro (fora do diff)",
+      "why": "Auditoria de segurança em várias fases com achados verificados de forma independente e saída legível por máquina. Complementa a revisão diferencial (Trail of Bits), que olha só o diff.",
+      "when": {
+        "has_code": true
+      },
+      "recommended": true
+    },
+    {
       "id": "security-review",
       "source": "trailofbits/skills",
       "skills": [

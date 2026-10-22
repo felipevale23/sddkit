@@ -115,7 +115,7 @@ Três camadas — da que depende do modelo à que não depende:
 
 | Sempre | Stack |
 |---|---|
-| ★ grill-me, ★ tdd, ★ diagnosing-bugs, ★ ponytail, ★ find-skills, ★ git-guardrails-claude-code, ★ superpowers, grill-with-docs, caveman, planning-with-files, domain-modeling, ★ skill-creator | node: ★ setup-pre-commit · react/next: ★ vercel-react-best-practices · frontend: ★ frontend-design, ★ impeccable, web-design-guidelines, webapp-testing · react-native · mcp: ★ mcp-builder · SDK Anthropic: ★ claude-api · código existente: ★ improve-codebase-architecture · claude-code-kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs, route-tester |
+| ★ grill-me, ★ tdd, ★ diagnosing-bugs, ★ ponytail, ★ find-skills, ★ git-guardrails-claude-code, ★ superpowers, grill-with-docs, caveman, planning-with-files, domain-modeling, ★ skill-creator | node: ★ setup-pre-commit · react/next: ★ vercel-react-best-practices · frontend: ★ frontend-design, ★ impeccable, web-design-guidelines, webapp-testing · react-native · mcp: ★ mcp-builder · SDK Anthropic: ★ claude-api · código existente: ★ improve-codebase-architecture, ★ security-audit · claude-code-kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs, route-tester |
 
 ## Fluxo no agente
 ```text
