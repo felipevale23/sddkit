@@ -669,6 +669,20 @@
       "recommended": true
     },
     {
+      "id": "conventional-git",
+      "group": "Workflow",
+      "source": "samber/cc-skills",
+      "skills": [
+        "conventional-git"
+      ],
+      "phase": "commits e branches",
+      "why": "Conventional Commits para commits, branches e worktrees, e proíbe assinatura do Claude, atribuição de IA e trailer Co-authored-by de agentes nos commits.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
+    },
+    {
       "id": "caveman",
       "group": "Workflow",
       "source": "JuliusBrussee/caveman",

@@ -165,7 +165,7 @@ Três camadas — da que depende do modelo à que não depende:
 | **Testing** | ★ tdd (sempre) · ★ diagnosing-bugs (sempre) · webapp-testing (frontend) · ★ playwright (frontend) · property-based-testing (fast-check, queue, pydantic) · cck-route-tester (backend) |
 | **Review** | ★ superpowers (sempre) · ★ spec-to-code-compliance (sempre) |
 | **Security** | ★ security-review (sempre) · ★ semgrep (sempre) · ★ security-audit (código existente) · ★ supply-chain-risk-auditor (node, python, go, rust) · ★ agentic-actions-auditor (ci) |
-| **Workflow** | ★ git-guardrails-claude-code (sempre) · ★ setup-pre-commit (node) · ★ caveman (sempre) · ★ find-skills (sempre) · ★ skill-creator (sempre) · deploy-to-vercel (vercel) |
+| **Workflow** | ★ git-guardrails-claude-code (sempre) · ★ setup-pre-commit (node) · conventional-git (sempre) · ★ caveman (sempre) · ★ find-skills (sempre) · ★ skill-creator (sempre) · deploy-to-vercel (vercel) |
 
 ## Fluxo no agente
 ```text
