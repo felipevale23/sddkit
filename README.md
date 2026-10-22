@@ -4,7 +4,7 @@
 
 Ele não substitui o seu agente: ele **arruma a casa** para que qualquer agente trabalhe do mesmo jeito, com as mesmas regras, no mesmo lugar.
 
-> **Em uma frase:** `sddkit init` uma vez; depois, no agente, `/sdd-feature` para criar, `/sdd-build` para implementar e `/sdd-change` para mudar.
+> **Em uma frase:** `sddkit init` uma vez; depois, no agente, `/sdd-feature` para criar, `/sdd-build` para implementar, `/sdd-change` para mudar e `/sdd-audit` para caçar bugs.
 
 ---
 
@@ -115,7 +115,8 @@ faturas/
 │   │   ├── features.md       ← índice gerado automaticamente
 │   │   ├── features/         ← uma pasta por feature
 │   │   ├── changes/          ← change requests
-│   │   └── playbooks/        ← guias reutilizáveis
+│   │   ├── playbooks/        ← guias reutilizáveis
+│   │   └── audits/           ← relatórios do /sdd-audit
 │   └── sddkit.json           ← configuração do sddkit
 ├── .specify/                 ← o motor do Spec Kit (não mexa; só a constituição é sua)
 └── .claude/                  ← gerado para o Claude Code (não edite à mão)
@@ -212,7 +213,23 @@ sddkit doctor
 
 Mostra ✓/✗ para instalação, constituição, skills recomendadas e **drift**: specs que mentem sobre o código, links quebrados, CRs com id repetido, dependências que a arquitetura não menciona… Cada ✗ vem com a correção sugerida. Detalhes na [seção 11](#11-o-doctor-saúde-e-drift).
 
-🎉 Pronto: esse é o ciclo inteiro. Daqui em diante é repetir os passos 4–7.
+### Passo 8 — Caçar bugs de tempos em tempos
+
+```text
+/sdd-audit
+```
+
+Diferente do `/sdd-build`, que olha só a feature em curso, a auditoria olha **o repositório inteiro** e **não edita nada**:
+
+1. **Checagens determinísticas:** testes, lint, tipos, `sddkit doctor`, vulnerabilidades de dependências e Semgrep (se já houver plano aprovado).
+2. **Caça por área:** um subagent somente leitura por pasta/serviço procura defeitos reais (entrada sem validação, erro engolido, corrida, falta de timeout, autorização faltando…). Cada achado traz `arquivo:linha`, o cenário que o dispara e o teste que falharia.
+3. **Conformidade:** features já implementadas são conferidas requisito a requisito contra o código.
+4. **Contestação:** cada achado grave vai a um segundo subagent que tenta derrubá-lo. Só fica o que resiste.
+5. **Relatório** em `.agents/specs/audits/AAAA-MM-DD.md`, comparado com o anterior (novos × resolvidos). O que for estrutural vira CR `Proposed` para você decidir.
+
+`--quick` roda só a parte 1, rápido e sem subagents. Para rodar sozinho toda semana, veja `sddkit ci --audit` na [seção 11](#11-o-doctor-saúde-e-drift).
+
+🎉 Pronto: esse é o ciclo inteiro. Daqui em diante é repetir os passos 4–8.
 
 ---
 
@@ -258,7 +275,9 @@ sddkit init                    # detecta a stack pelo código e sugere papéis/s
 | passar a usar outra ferramenta | `sddkit sync --agents claude,opencode` |
 | atualizar após upgrade do sddkit | `sddkit init` (atualiza o que você não editou; o que editou é mantido e listado) |
 | conferir no CI que nada gerado está desatualizado | `sddkit sync --check` |
-| saber o que está errado | `sddkit doctor` |
+| saber o que está errado | `sddkit doctor` (`--fix` corrige o mecânico) |
+| caçar bugs no repositório inteiro | `/sdd-audit` (`--quick` só o determinístico) |
+| checagem a cada PR e auditoria semanal no GitHub | `sddkit ci --audit` |
 
 **Regra de ouro:** você edita arquivos em `.agents/` (e o texto fora dos marcadores no `AGENTS.md`); depois roda `sddkit sync`. Arquivos em `.claude/`, `.opencode/`, `.gemini/` são **gerados** a partir deles. Se alguém editar um gerado, o `sync` **recusa sobrescrever** e avisa, para a edição ir para a fonte (veja a [seção 6](#6-onde-fica-cada-coisa)).
 
@@ -514,6 +533,15 @@ Antes de checar, aplica as correções que não pedem julgamento, e só elas:
 
 Fica com você: ids de CR duplicados (commits já citam o id), o que os docs devem dizer, features sem spec. Rodar de novo não muda nada. Faça commit antes e revise com `git diff`.
 
+### No CI: `sddkit ci`
+```bash
+sddkit ci            # .github/workflows/sddkit.yml
+sddkit ci --audit    # + .github/workflows/sddkit-audit.yml
+```
+- **`sddkit.yml`** (cada push/PR): `sddkit sync --check` **falha** o PR se algum arquivo gerado estiver desatualizado ou editado à mão; `sddkit doctor` roda como relatório (não falha até o projeto zerar as pendências; tire o `continue-on-error` quando quiser que falhe).
+- **`sddkit-audit.yml`** (segunda-feira 06:00 UTC, ou à mão em *Actions → sddkit-audit → Run workflow*): o Claude Code ([claude-code-action](https://github.com/anthropics/claude-code-action)) roda o `/sdd-audit --issue` e abre uma **issue** com o relatório. Tem permissão só de leitura no código e de escrita em issues: não faz commit nem push. Requer o secret `ANTHROPIC_API_KEY` no repositório.
+- Os arquivos são criados uma vez e são seus: edite à vontade (horário, comandos); `--force` recria.
+
 ---
 
 ## 12. Referência de comandos
@@ -532,6 +560,7 @@ sddkit index                                  # regenera .agents/specs/features.
 sddkit commitlint [--no-install]
 sddkit sync [--agents …] [--copy] [--check] [--force]   # regenera AGENTS.md, índice e adaptadores a partir de .agents/
 sddkit doctor [--fix]
+sddkit ci [--audit] [--force]                  # workflows do GitHub: checagem a cada PR e auditoria semanal
 ```
 
 ### No agente
@@ -541,6 +570,7 @@ sddkit doctor [--fix]
 | `/sdd-feature <descrição>` | da ideia ao `tasks.md` revisado | `--stack "…"` · `--grill` / `--no-grill` · `--auto` |
 | `/sdd-build` | implementar em ondas com especialistas e revisores | `--mvp` · `--phase N` · `--max-parallel K` · `--no-commit` |
 | `/sdd-change <o que mudar>` | mudar algo existente (Tipo A ou CR Tipo B) | `--feature NNN` |
+| `/sdd-audit` | caçar bugs no repositório inteiro, sem editar | `--quick` · `--scope <caminho>` · `--features NNN,NNN` · `--issue` |
 | `/grill-me` | interrogatório para afiar uma ideia | — |
 | `/speckit-specify`, `-clarify`, `-plan`, `-checklist`, `-tasks`, `-analyze`, `-implement`, `-converge`, `-taskstoissues` | fases avulsas do Spec Kit | — |
 

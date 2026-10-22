@@ -667,6 +667,26 @@ def cmd_playbook(args) -> int:
     return 0
 
 
+SDDKIT_SOURCE = "git+https://github.com/felipevale23/sddkit"
+
+
+def cmd_ci(args) -> int:
+    root = Path(args.dir).resolve()
+    names = ["sddkit.yml"] + (["sddkit-audit.yml"] if args.audit else [])
+    for n in names:
+        dst = root / ".github" / "workflows" / n
+        if dst.exists() and not args.force:
+            say(f"· {dst.relative_to(root)} já existe — mantido (--force substitui)")
+            continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_text((tpl() / "ci" / n).read_text(encoding="utf-8").format(source=SDDKIT_SOURCE), encoding="utf-8")
+        say(f"✓ {dst.relative_to(root)}")
+    if args.audit:
+        say("  → crie o secret ANTHROPIC_API_KEY no repositório (Settings → Secrets and variables → Actions)")
+        say("  → a auditoria roda toda segunda às 06:00 UTC ou à mão em Actions → sddkit-audit → Run workflow")
+    return 0
+
+
 COMMITLINT_CONFIGS = ("commitlint.config.js", "commitlint.config.mjs", "commitlint.config.cjs", "commitlint.config.ts",
                       ".commitlintrc", ".commitlintrc.json", ".commitlintrc.yml", ".commitlintrc.yaml", ".commitlintrc.js")
 
@@ -927,6 +947,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("dir", nargs="?", default=".")
     p.add_argument("--no-install", action="store_true", help="não instala @commitlint/* (só cria config e hook)")
     p.set_defaults(fn=cmd_commitlint)
+
+    p = sub.add_parser("ci", help="workflows do GitHub: sync --check + doctor a cada PR; --audit: /sdd-audit semanal com o Claude Code")
+    p.add_argument("dir", nargs="?", default=".")
+    p.add_argument("--audit", action="store_true", help="também cria a auditoria semanal (requer o secret ANTHROPIC_API_KEY)")
+    p.add_argument("--force", action="store_true", help="substitui workflows existentes")
+    p.set_defaults(fn=cmd_ci)
 
     p = sub.add_parser("doctor", help="verifica a instalação e o drift entre specs e código")
     p.add_argument("dir", nargs="?", default=".")

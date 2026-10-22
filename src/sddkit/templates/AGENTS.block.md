@@ -12,6 +12,7 @@ Este repositório segue SDD com GitHub Spec Kit. **Nenhum código de produção 
 | Feature nova | `/sdd-feature <descrição> --stack <...>` → grill? → specify → clarify → plan → tasks → análise |
 | Implementar | `/sdd-build --mvp`, depois `/sdd-build` |
 | Mudar o que já existe (bug, ajuste, evolução) | `/sdd-change <o que mudar>` → Tipo A direto · Tipo B: CR → aprovação → spec → código → drift report → CHANGELOG |
+| Caçar bugs no repositório inteiro (periódico, antes de release) | `/sdd-audit` → checagens determinísticas + subagents por área + conformidade spec × código → relatório em `.agents/specs/audits/` e CRs propostos (não edita código) |
 
 Fases avulsas: `/speckit-specify`, `-clarify`, `-plan`, `-checklist`, `-tasks`, `-analyze`, `-implement`, `-converge`, `-taskstoissues`.
 Se a sua ferramenta não aceita `/comando`, leia e siga `.agents/skills/<comando>/SKILL.md`.

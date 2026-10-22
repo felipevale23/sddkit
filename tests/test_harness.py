@@ -335,6 +335,23 @@ def test_doctor_clean_after_index_on_fresh_project():
     assert len(failed) == 1 and "docs centrais preenchidos" in failed[0], failed
 
 
+# ───────────────────────── auditoria / CI ─────────────────────────
+def test_audit_skill_and_ci_workflows():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    assert (root / ".agents/skills/sdd-audit/SKILL.md").exists() and (root / ".agents/specs/audits/.gitkeep").exists()
+    assert "/sdd-audit" in (root / "AGENTS.md").read_text()
+    sdd(root, "ci", "--audit")
+    check = (root / ".github/workflows/sddkit.yml").read_text()
+    audit = (root / ".github/workflows/sddkit-audit.yml").read_text()
+    assert "sddkit sync --check" in check and "{source}" not in check
+    assert "${{ secrets.ANTHROPIC_API_KEY }}" in audit and "anthropics/claude-code-action@v1" in audit
+    assert "contents: read" in audit and "contents: write" not in audit   # auditoria não faz commit
+    (root / ".github/workflows/sddkit.yml").write_text("meu ci\n")
+    assert "já existe — mantido" in sdd(root, "ci").stdout
+    assert (root / ".github/workflows/sddkit.yml").read_text() == "meu ci\n"
+
+
 # ───────────────────────── commitlint / commit-msg ─────────────────────────
 ATTRIBUTION = "fix: a\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 

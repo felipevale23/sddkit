@@ -1,0 +1,35 @@
+# Gerado por `sddkit ci --audit` (uma vez; é seu, edite à vontade).
+# Auditoria semanal com o Claude Code: roda /sdd-audit e abre uma issue com o relatório.
+# Requer o secret ANTHROPIC_API_KEY. Não faz commit nem push: só lê o código e abre a issue.
+name: sddkit-audit
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # segunda-feira, 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: uv tool install --from {source} sddkit
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{{{ secrets.ANTHROPIC_API_KEY }}}}
+          prompt: |
+            REPO: ${{{{ github.repository }}}}
+            Leia e siga .agents/skills/sdd-audit/SKILL.md com os argumentos: --issue
+            Não edite código nem specs e não faça commit: o resultado é o relatório e a issue.
+          claude_args: |
+            --allowedTools "Read,Glob,Grep,Agent,Task,Write(.agents/specs/audits/**),Write(.agents/specs/changes/**),Bash(sddkit:*),Bash(npm:*),Bash(npx:*),Bash(pnpm:*),Bash(yarn:*),Bash(uv:*),Bash(uvx:*),Bash(python3:*),Bash(pytest:*),Bash(semgrep:*),Bash(pip-audit:*),Bash(osv-scanner:*),Bash(git log:*),Bash(git diff:*),Bash(git rev-parse:*),Bash(gh issue:*)"

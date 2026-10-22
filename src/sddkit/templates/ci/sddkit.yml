@@ -1,0 +1,21 @@
+# Gerado por `sddkit ci` (uma vez; é seu, edite à vontade). Fonte única e drift a cada push/PR.
+name: sddkit
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      # falha se algum arquivo gerado estiver desatualizado ou editado à mão
+      - run: uvx --from {source} sddkit sync --check
+      # relatório de saúde e drift; informativo até o projeto zerar as pendências
+      - run: uvx --from {source} sddkit doctor
+        continue-on-error: true
