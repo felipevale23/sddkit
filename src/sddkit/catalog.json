@@ -239,6 +239,19 @@
       "recommended": true
     },
     {
+      "id": "find-skills",
+      "source": "vercel-labs/skills",
+      "skills": [
+        "find-skills"
+      ],
+      "phase": "manutenção",
+      "why": "Descobre e instala skills do ecossistema skills.sh quando o agente precisa de uma capacidade que o projeto ainda não tem.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
       "id": "skill-creator",
       "source": "anthropics/skills",
       "skills": [
