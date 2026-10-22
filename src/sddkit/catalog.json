@@ -206,6 +206,21 @@
       "recommended": false
     },
     {
+      "id": "playwright",
+      "source": "lackeyjb/playwright-skill",
+      "skills": [
+        "playwright-skill"
+      ],
+      "phase": "/sdd-build + converge",
+      "why": "Automação de navegador com Playwright: detecta o dev server, gera scripts reutilizáveis, screenshots, checagem responsiva, fluxos de login e links quebrados.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": true
+    },
+    {
       "id": "deploy-to-vercel",
       "source": "vercel-labs/agent-skills",
       "skills": [
