@@ -349,6 +349,7 @@ def test_doctor_flags_real_drift_without_false_positives():
     assert "· CHANGE-010: 2026-07-02-a.md, 2026-09-07-b.md" in drift
     assert "Implemented (2026-09-30, uncommitted)" in drift
     assert "· 011-tokens" in drift
+    assert "· 011-tokens/tasks.md: 1 tarefas — 1 com id fora de T###, 1 sem caminho de arquivo" in drift   # formato do Spec Kit
     deps = drift.split("dependências de arquitetura")[1].split("✗ features")[0]
     assert "bullmq" in deps and "zod" in deps
     for documented in ("express", "react-query", "tailwindcss", "prisma"):    # regressão: "React Query"/"Tailwind CSS"

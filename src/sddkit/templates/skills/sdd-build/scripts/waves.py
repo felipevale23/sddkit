@@ -109,7 +109,7 @@ def route(task: dict, roles: list[dict], in_tests: bool) -> tuple[str, str]:
         if score and (score, r["priority"]) > best_key:
             best, best_key, why = r["name"], (score, r["priority"]), f"score={score}"
     return best, why
-EXT = r"(?:py|pyi|ts|tsx|js|jsx|mjs|go|rs|java|kt|rb|php|cs|sql|md|json|ya?ml|toml|sh|css|scss|html|vue|svelte|dart|swift|ex|exs|proto|graphql|prisma|tf)"
+EXT = r"(?:py|pyi|ts|tsx|mts|cts|js|jsx|mjs|go|rs|java|kt|rb|php|cs|sql|md|json|ya?ml|toml|sh|css|scss|html|vue|svelte|astro|dart|swift|ex|exs|proto|graphql|prisma|tf|sol|ipynb)"
 PATH_RE = re.compile(r"(?<![\w/])((?:[\w.@\[\]-]+/)*[\w.@\[\]-]+\." + EXT + r")(?![\w])")
 
 

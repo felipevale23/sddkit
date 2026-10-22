@@ -99,8 +99,11 @@ def load_cfg(root: Path) -> dict:
 
 def save_cfg(root: Path, cfg: dict) -> None:
     p = root / CONFIG
+    text = json.dumps(cfg, indent=2, ensure_ascii=False) + "\n"
+    if p.is_file() and p.read_text(encoding="utf-8") == text:
+        return  # sem mudança: não reescreve (watchers e ferramentas por mtime ficam quietos)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    p.write_text(text, encoding="utf-8")
 
 
 def interactive(args) -> bool:

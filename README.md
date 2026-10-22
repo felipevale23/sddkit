@@ -686,4 +686,18 @@ SDDKIT_E2E=1 python -m pytest tests -q    # + Spec Kit, npx skills e npm commitl
 
 Todo bug achado vira um caso marcado com `regressão:` no teste. Para conferir que um teste pega o bug, reintroduza o defeito e veja-o falhar.
 
+### Benchmark num projeto real
+```bash
+python bench/bench.py <caminho-do-repo> [--with-skills] [--out relatorio.md]
+```
+Clona o repositório numa pasta temporária (só arquivos versionados, nada de `.env`) e mede, sem rodar agente de IA:
+- adoção: `doctor` antes, `doctor --fix`, `init`, `sync --check`, idempotência;
+- detecção de stack;
+- ondas, paralelismo, roteamento e tamanho do contexto do `/sdd-build` em todas as features;
+- orçamento de tokens (`--with-skills` instala as recomendadas para medir o real);
+- o hook de commit contra o histórico;
+- a guarda de segredos contra todos os arquivos versionados.
+
+Segredos aparecem só como tipo e linha, nunca o valor.
+
 O catálogo de skills fica em `src/sddkit/catalog.json` (fonte, skills, grupo, quando sugerir, recomendada ou não); os templates de skills, papéis e specs em `src/sddkit/templates/`.

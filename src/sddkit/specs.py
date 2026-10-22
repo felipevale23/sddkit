@@ -220,6 +220,30 @@ def broken_refs(root: Path, doc: Path, tracked: list[str] | None = None) -> list
     return bad
 
 
+# mesma regra de caminho do waves.py: é o que permite rotear a tarefa ao especialista e paralelizar
+TASK_LINE = re.compile(r"^\s*-\s*\[[ xX]\]\s*(\S+)(.*)$")
+TASK_PATH = re.compile(r"(?<![\w/])(?:[\w.@\[\]-]+/)*[\w.@\[\]-]+\.(?:py|pyi|ts|tsx|mts|cts|js|jsx|mjs|go|rs|java|kt|rb|php|cs|sql|md|json"
+                       r"|ya?ml|toml|sh|css|scss|html|vue|svelte|astro|dart|swift|ex|exs|proto|graphql|prisma|tf|sol|ipynb)(?![\w])")
+
+
+def task_format(path: Path) -> dict[str, int]:
+    """Tarefas fora do formato do Spec Kit (o /sdd-build roteia e paraleliza pior com elas)."""
+    out = {"total": 0, "bad_id": 0, "no_path": 0, "story_no_tag": 0}
+    story_phase = False
+    for ln in path.read_text(encoding="utf-8").splitlines():
+        if ln.startswith("## "):
+            story_phase = bool(re.search(r"user story|\bUS\d", ln, re.I))
+            continue
+        m = TASK_LINE.match(ln)
+        if not m:
+            continue
+        out["total"] += 1
+        out["bad_id"] += not re.fullmatch(r"T\d{3,}", m.group(1))
+        out["no_path"] += not TASK_PATH.search(m.group(2))
+        out["story_no_tag"] += story_phase and not re.search(r"\[US\d+\]", m.group(2))
+    return out
+
+
 def drift_checks(root: Path, info: dict) -> list[tuple[bool, str, str, list[str]]]:
     """(ok, mensagem, correção, detalhes) — consumido pelo `sddkit doctor`."""
     sdir = root / SPECS
@@ -270,6 +294,17 @@ def drift_checks(root: Path, info: dict) -> list[tuple[bool, str, str, list[str]
     feats = load_features(root)
     nospec = [f["dir"].name for f in feats if not f["has_spec"]]
     out.append((not nospec, f"features com spec.md ({len(feats)})", "crie o spec.md (ou aponte o CR que é a spec)", nospec))
+    bad_tasks = []
+    for f in feats:
+        for t in sorted(f["dir"].glob("tasks*.md")):
+            n = task_format(t)
+            issues = [f"{n[k]} {label}" for k, label in (("bad_id", "com id fora de T###"), ("no_path", "sem caminho de arquivo"),
+                                                        ("story_no_tag", "de história sem [USn]")) if n[k]]
+            if issues:
+                bad_tasks.append(f"{f['dir'].name}/{t.name}: {n['total']} tarefas — " + ", ".join(issues))
+    out.append((not bad_tasks, "tasks.md no formato do Spec Kit (id T###, caminho de arquivo, [USn] nas histórias)",
+                "sem isso o /sdd-build não roteia ao especialista nem paraleliza: `- [ ] T012 [P] [US1] Descrição em caminho/arquivo.ext`",
+                bad_tasks))
     idx = sdir / "features.md"
     out.append((idx.exists() and idx.read_text(encoding="utf-8") == index_text(root),
                 "features.md em dia com as pastas e os CRs", "sddkit index", []))

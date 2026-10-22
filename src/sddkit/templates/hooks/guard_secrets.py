@@ -30,8 +30,11 @@ SECRET_PATTERNS = [
     ("token Slack", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}")),
     ("chave Google", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),
     ("token Stripe", re.compile(r"\b(?:sk|rk)_live_[0-9A-Za-z]{20,}")),
-    ("URL com senha", re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s:/@]+:[^\s@/]{6,}@[^\s/]+", re.I)),
+    ("URL com senha", re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s:/@]+:(?P<pw>[^\s@/]{6,})@[^\s/]+", re.I)),
 ]
+# senha que é só interpolação (`${PASS}`, `$DB_PASS`, `<senha>`, `{{ pass }}`, `%s`) não é segredo;
+# `${PASS:-padrao}` é: o padrão fica escrito no arquivo.
+TEMPLATED = re.compile(r"\$\{[^}:]+\}|\$[A-Z_][A-Z0-9_]*|<[^<>]+>|\{\{?\s*[\w.]+\s*\}?\}|%\(\w+\)s|%s|\*+")
 # formatado (000.000.000-00 / 00.000.000/0000-00) sempre; só dígitos apenas se a linha cita cpf/cnpj
 CPF_FMT = re.compile(r"(?<!\d)(\d{3})\.(\d{3})\.(\d{3})-(\d{2})(?!\d)")
 CNPJ_FMT = re.compile(r"(?<!\d)(\d{2})\.(\d{3})\.(\d{3})/(\d{4})-(\d{2})(?!\d)")
@@ -70,7 +73,8 @@ def scan(text: str) -> list[str]:
         if ALLOW_MARK in line:
             continue
         for name, rx in SECRET_PATTERNS:
-            if rx.search(line):
+            m = rx.search(line)
+            if m and not ("pw" in rx.groupindex and TEMPLATED.fullmatch(m.group("pw"))):
                 hits.append(f"linha {i}: {name}")
         raw = bool(DOC_WORD.search(line))
         for rx in (CPF_FMT, CPF_RAW) if raw else (CPF_FMT,):
