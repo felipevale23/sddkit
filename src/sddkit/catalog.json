@@ -1,8 +1,18 @@
 {
   "version": 1,
+  "groups": [
+    "Starting",
+    "Coding",
+    "UI",
+    "Testing",
+    "Review",
+    "Security",
+    "Workflow"
+  ],
   "entries": [
     {
       "id": "grill-me",
+      "group": "Starting",
       "source": "mattpocock/skills",
       "skills": [
         "grill-me",
@@ -17,6 +27,7 @@
     },
     {
       "id": "grill-with-docs",
+      "group": "Starting",
       "source": "mattpocock/skills",
       "skills": [
         "grill-with-docs"
@@ -29,34 +40,8 @@
       "recommended": false
     },
     {
-      "id": "tdd",
-      "source": "mattpocock/skills",
-      "skills": [
-        "tdd",
-        "codebase-design"
-      ],
-      "phase": "/sdd-build",
-      "why": "Disciplina red-green-refactor; reforça as ondas de teste antes do código.",
-      "when": {
-        "always": true
-      },
-      "recommended": true
-    },
-    {
-      "id": "diagnosing-bugs",
-      "source": "mattpocock/skills",
-      "skills": [
-        "diagnosing-bugs"
-      ],
-      "phase": "bugs e regressões",
-      "why": "Loop de diagnóstico para bugs difíceis e regressões de performance, fora do fluxo de feature.",
-      "when": {
-        "always": true
-      },
-      "recommended": true
-    },
-    {
       "id": "domain-modeling",
+      "group": "Starting",
       "source": "mattpocock/skills",
       "skills": [
         "domain-modeling"
@@ -70,6 +55,7 @@
     },
     {
       "id": "improve-codebase-architecture",
+      "group": "Starting",
       "source": "mattpocock/skills",
       "skills": [
         "improve-codebase-architecture",
@@ -85,35 +71,39 @@
       "recommended": true
     },
     {
-      "id": "git-guardrails-claude-code",
-      "source": "mattpocock/skills",
+      "id": "planning-with-files",
+      "group": "Starting",
+      "source": "OthmanAdi/planning-with-files",
       "skills": [
-        "git-guardrails-claude-code"
+        "planning-with-files"
       ],
-      "phase": "setup",
-      "why": "Hook PreToolUse do Claude Code que bloqueia git destrutivo (push, reset --hard, clean -f, branch -D, checkout/restore .) antes de executar.",
+      "phase": "tarefas longas fora do fluxo de feature",
+      "why": "Plano, achados e progresso em arquivos markdown que sobrevivem a /clear e compactação. Opcional: dentro do fluxo SDD o plan.md/tasks.md do Spec Kit já cumprem esse papel. ⚠ Declara hooks que rodam scripts shell a cada prompt e chamada de ferramenta; sob pedido explícito, lê transcrições do Claude Code em ~/.claude/projects.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
+    },
+    {
+      "id": "ponytail",
+      "group": "Coding",
+      "source": "DietrichGebert/ponytail",
+      "skills": [
+        "ponytail",
+        "ponytail-review",
+        "ponytail-audit",
+        "ponytail-debt"
+      ],
+      "phase": "/sdd-build e revisão",
+      "why": "Contra over-engineering: YAGNI, stdlib/nativo antes de dependência, menor diff que funciona; revisão e auditoria do que dá para apagar, e registro dos atalhos deliberados (comentários ponytail:).",
       "when": {
         "always": true
       },
       "recommended": true
     },
     {
-      "id": "setup-pre-commit",
-      "source": "mattpocock/skills",
-      "skills": [
-        "setup-pre-commit"
-      ],
-      "phase": "setup",
-      "why": "Husky + lint-staged + typecheck + testes no commit — cada onda do /sdd-build passa pelo gate.",
-      "when": {
-        "stacks": [
-          "node"
-        ]
-      },
-      "recommended": true
-    },
-    {
       "id": "react-best-practices",
+      "group": "Coding",
       "source": "vercel-labs/agent-skills",
       "skills": [
         "vercel-react-best-practices",
@@ -131,6 +121,7 @@
     },
     {
       "id": "react-native",
+      "group": "Coding",
       "source": "vercel-labs/agent-skills",
       "skills": [
         "vercel-react-native-skills"
@@ -146,7 +137,248 @@
       "recommended": true
     },
     {
+      "id": "mcp-builder",
+      "group": "Coding",
+      "source": "anthropics/skills",
+      "skills": [
+        "mcp-builder"
+      ],
+      "phase": "/speckit-plan + /sdd-build",
+      "why": "Guia para construir servidores MCP de qualidade.",
+      "when": {
+        "stacks": [
+          "mcp"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "claude-api",
+      "group": "Coding",
+      "source": "anthropics/skills",
+      "skills": [
+        "claude-api"
+      ],
+      "phase": "/sdd-build",
+      "why": "Uso correto da Claude API / SDK (tool use, caching, streaming).",
+      "when": {
+        "stacks": [
+          "anthropic-sdk"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-express",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "express"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões Express: rotas, middleware, tratamento de erros, validação.",
+      "when": {
+        "stacks": [
+          "express"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-nodejs",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "nodejs"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões Node.js: async, erros, módulos, performance.",
+      "when": {
+        "stacks": [
+          "node"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-prisma",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "prisma"
+      ],
+      "phase": "/sdd-build",
+      "why": "Prisma Client: queries, relações, transações e schema.",
+      "when": {
+        "stacks": [
+          "prisma"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-tailwindcss",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "tailwindcss"
+      ],
+      "phase": "/sdd-build",
+      "why": "Tailwind CSS v4: utilitários, responsivo, dark mode, tema.",
+      "when": {
+        "stacks": [
+          "tailwind"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-shadcn",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "shadcn"
+      ],
+      "phase": "/sdd-build",
+      "why": "shadcn/ui sobre Radix + Tailwind: tabelas, formulários, diálogos.",
+      "when": {
+        "stacks": [
+          "shadcn"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-mui",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "mui"
+      ],
+      "phase": "/sdd-build",
+      "why": "Material UI: componentes, tema e estilização.",
+      "when": {
+        "stacks": [
+          "mui"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-tanstack-query",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "tanstack-query"
+      ],
+      "phase": "/sdd-build",
+      "why": "TanStack Query v5: useSuspenseQuery, mutations, cache.",
+      "when": {
+        "stacks": [
+          "tanstack-query"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-tanstack-router",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "tanstack-router"
+      ],
+      "phase": "/sdd-build",
+      "why": "TanStack Router: rotas por arquivo, loaders, navegação tipada.",
+      "when": {
+        "stacks": [
+          "tanstack-router"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-react",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "react"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões React 19. Opcional: vercel-react-best-practices já cobre React.",
+      "when": {
+        "stacks": [
+          "react"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "cck-nextjs",
+      "group": "Coding",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "nextjs"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões Next.js. Opcional: vercel-react-best-practices já cobre Next.",
+      "when": {
+        "stacks": [
+          "next"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "frontend-design",
+      "group": "UI",
+      "source": "anthropics/skills",
+      "skills": [
+        "frontend-design"
+      ],
+      "phase": "/sdd-build",
+      "why": "Direção visual intencional para interfaces, evitando cara de template.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "web-design-guidelines",
+      "group": "UI",
+      "source": "vercel-labs/agent-skills",
+      "skills": [
+        "web-design-guidelines"
+      ],
+      "phase": "/sdd-build + revisão",
+      "why": "Auditoria de UI (acessibilidade, UX) contra guidelines web.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "impeccable",
+      "group": "UI",
+      "source": "pbakaus/impeccable",
+      "skills": [
+        "impeccable"
+      ],
+      "phase": "/sdd-build (UI) e revisão de UI",
+      "why": "Linguagem de design para UI: hierarquia, tipografia, cor, movimento, acessibilidade, responsivo e estados de borda; também critica, audita e documenta o design system (DESIGN.md, tokens). ⚠ Baixa um binário nativo dos releases do GitHub do autor para ~/.impeccable (sha256 vem do mesmo lugar) e pode instalar hooks nas configs do agente.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": false
+    },
+    {
       "id": "apple-design",
+      "group": "UI",
       "source": "dickwu/apple-design-skill",
       "skills": [
         "apple-design"
@@ -164,52 +396,37 @@
       "recommended": true
     },
     {
-      "id": "web-design-guidelines",
-      "source": "vercel-labs/agent-skills",
+      "id": "tdd",
+      "group": "Testing",
+      "source": "mattpocock/skills",
       "skills": [
-        "web-design-guidelines"
-      ],
-      "phase": "/sdd-build + revisão",
-      "why": "Auditoria de UI (acessibilidade, UX) contra guidelines web.",
-      "when": {
-        "stacks": [
-          "frontend"
-        ]
-      },
-      "recommended": false
-    },
-    {
-      "id": "frontend-design",
-      "source": "anthropics/skills",
-      "skills": [
-        "frontend-design"
+        "tdd",
+        "codebase-design"
       ],
       "phase": "/sdd-build",
-      "why": "Direção visual intencional para interfaces, evitando cara de template.",
+      "why": "Disciplina red-green-refactor; reforça as ondas de teste antes do código.",
       "when": {
-        "stacks": [
-          "frontend"
-        ]
+        "always": true
       },
       "recommended": true
     },
     {
-      "id": "impeccable",
-      "source": "pbakaus/impeccable",
+      "id": "diagnosing-bugs",
+      "group": "Testing",
+      "source": "mattpocock/skills",
       "skills": [
-        "impeccable"
+        "diagnosing-bugs"
       ],
-      "phase": "/sdd-build (UI) e revisão de UI",
-      "why": "Linguagem de design para UI: hierarquia, tipografia, cor, movimento, acessibilidade, responsivo e estados de borda; também critica, audita e documenta o design system (DESIGN.md, tokens). ⚠ Baixa um binário nativo dos releases do GitHub do autor para ~/.impeccable (sha256 vem do mesmo lugar) e pode instalar hooks nas configs do agente.",
+      "phase": "bugs e regressões",
+      "why": "Loop de diagnóstico para bugs difíceis e regressões de performance, fora do fluxo de feature.",
       "when": {
-        "stacks": [
-          "frontend"
-        ]
+        "always": true
       },
-      "recommended": false
+      "recommended": true
     },
     {
       "id": "webapp-testing",
+      "group": "Testing",
       "source": "anthropics/skills",
       "skills": [
         "webapp-testing"
@@ -225,6 +442,7 @@
     },
     {
       "id": "playwright",
+      "group": "Testing",
       "source": "lackeyjb/playwright-skill",
       "skills": [
         "playwright-skill"
@@ -239,81 +457,42 @@
       "recommended": true
     },
     {
-      "id": "deploy-to-vercel",
-      "source": "vercel-labs/agent-skills",
+      "id": "property-based-testing",
+      "group": "Testing",
+      "source": "trailofbits/skills",
       "skills": [
-        "deploy-to-vercel"
+        "property-based-testing"
       ],
-      "phase": "entrega",
-      "why": "Deploy de previews/produção na Vercel. ⚠ Envia um tarball do projeto (sem .git/.env) ao endpoint de deploy da Vercel; pede confirmação antes.",
+      "phase": "/sdd-build (event-module, qa)",
+      "why": "Guia de testes de propriedade (fast-check/hypothesis) para invariantes de domínio.",
       "when": {
         "stacks": [
-          "vercel"
+          "fast-check",
+          "queue",
+          "pydantic"
         ]
       },
       "recommended": false
     },
     {
-      "id": "mcp-builder",
-      "source": "anthropics/skills",
+      "id": "cck-route-tester",
+      "group": "Testing",
+      "source": "blencorp/claude-code-kit",
       "skills": [
-        "mcp-builder"
-      ],
-      "phase": "/speckit-plan + /sdd-build",
-      "why": "Guia para construir servidores MCP de qualidade.",
-      "when": {
-        "stacks": [
-          "mcp"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "claude-api",
-      "source": "anthropics/skills",
-      "skills": [
-        "claude-api"
+        "route-tester"
       ],
       "phase": "/sdd-build",
-      "why": "Uso correto da Claude API / SDK (tool use, caching, streaming).",
+      "why": "Testes de rotas HTTP com autenticação (JWT/cookie) e integração.",
       "when": {
         "stacks": [
-          "anthropic-sdk"
+          "backend"
         ]
       },
-      "recommended": true
-    },
-    {
-      "id": "ponytail",
-      "source": "DietrichGebert/ponytail",
-      "skills": [
-        "ponytail",
-        "ponytail-review",
-        "ponytail-audit",
-        "ponytail-debt"
-      ],
-      "phase": "/sdd-build e revisão",
-      "why": "Contra over-engineering: YAGNI, stdlib/nativo antes de dependência, menor diff que funciona; revisão e auditoria do que dá para apagar, e registro dos atalhos deliberados (comentários ponytail:).",
-      "when": {
-        "always": true
-      },
-      "recommended": true
-    },
-    {
-      "id": "find-skills",
-      "source": "vercel-labs/skills",
-      "skills": [
-        "find-skills"
-      ],
-      "phase": "manutenção",
-      "why": "Descobre e instala skills do ecossistema skills.sh quando o agente precisa de uma capacidade que o projeto ainda não tem. ⚠ Sugere `npx skills add ... -g -y`: instala globalmente sem revisão. Prefira `sddkit add` no projeto.",
-      "when": {
-        "always": true
-      },
-      "recommended": true
+      "recommended": false
     },
     {
       "id": "superpowers",
+      "group": "Review",
       "source": "obra/superpowers",
       "skills": [
         "verification-before-completion",
@@ -330,224 +509,22 @@
       "recommended": true
     },
     {
-      "id": "caveman",
-      "source": "JuliusBrussee/caveman",
+      "id": "spec-to-code-compliance",
+      "group": "Review",
+      "source": "trailofbits/skills",
       "skills": [
-        "caveman"
+        "spec-to-code-compliance"
       ],
-      "phase": "sempre (estilo de resposta)",
-      "why": "Respostas telegráficas do agente para cortar tokens de saída.",
+      "phase": "convergência (sdd-converger)",
+      "why": "Confronta código e spec: requisitos atendidos, contrariados, ausentes e comportamento não especificado.",
       "when": {
         "always": true
-      },
-      "recommended": true
-    },
-    {
-      "id": "planning-with-files",
-      "source": "OthmanAdi/planning-with-files",
-      "skills": [
-        "planning-with-files"
-      ],
-      "phase": "tarefas longas fora do fluxo de feature",
-      "why": "Plano, achados e progresso em arquivos markdown que sobrevivem a /clear e compactação. Opcional: dentro do fluxo SDD o plan.md/tasks.md do Spec Kit já cumprem esse papel. ⚠ Declara hooks que rodam scripts shell a cada prompt e chamada de ferramenta; sob pedido explícito, lê transcrições do Claude Code em ~/.claude/projects.",
-      "when": {
-        "always": true
-      },
-      "recommended": false
-    },
-    {
-      "id": "cck-express",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "express"
-      ],
-      "phase": "/sdd-build",
-      "why": "Padrões Express: rotas, middleware, tratamento de erros, validação.",
-      "when": {
-        "stacks": [
-          "express"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "cck-nodejs",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "nodejs"
-      ],
-      "phase": "/sdd-build",
-      "why": "Padrões Node.js: async, erros, módulos, performance.",
-      "when": {
-        "stacks": [
-          "node"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "cck-prisma",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "prisma"
-      ],
-      "phase": "/sdd-build",
-      "why": "Prisma Client: queries, relações, transações e schema.",
-      "when": {
-        "stacks": [
-          "prisma"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "cck-tailwindcss",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "tailwindcss"
-      ],
-      "phase": "/sdd-build",
-      "why": "Tailwind CSS v4: utilitários, responsivo, dark mode, tema.",
-      "when": {
-        "stacks": [
-          "tailwind"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "cck-shadcn",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "shadcn"
-      ],
-      "phase": "/sdd-build",
-      "why": "shadcn/ui sobre Radix + Tailwind: tabelas, formulários, diálogos.",
-      "when": {
-        "stacks": [
-          "shadcn"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "cck-mui",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "mui"
-      ],
-      "phase": "/sdd-build",
-      "why": "Material UI: componentes, tema e estilização.",
-      "when": {
-        "stacks": [
-          "mui"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "cck-tanstack-query",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "tanstack-query"
-      ],
-      "phase": "/sdd-build",
-      "why": "TanStack Query v5: useSuspenseQuery, mutations, cache.",
-      "when": {
-        "stacks": [
-          "tanstack-query"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "cck-tanstack-router",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "tanstack-router"
-      ],
-      "phase": "/sdd-build",
-      "why": "TanStack Router: rotas por arquivo, loaders, navegação tipada.",
-      "when": {
-        "stacks": [
-          "tanstack-router"
-        ]
-      },
-      "recommended": true
-    },
-    {
-      "id": "cck-react",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "react"
-      ],
-      "phase": "/sdd-build",
-      "why": "Padrões React 19. Opcional: vercel-react-best-practices já cobre React.",
-      "when": {
-        "stacks": [
-          "react"
-        ]
-      },
-      "recommended": false
-    },
-    {
-      "id": "cck-nextjs",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "nextjs"
-      ],
-      "phase": "/sdd-build",
-      "why": "Padrões Next.js. Opcional: vercel-react-best-practices já cobre Next.",
-      "when": {
-        "stacks": [
-          "next"
-        ]
-      },
-      "recommended": false
-    },
-    {
-      "id": "cck-route-tester",
-      "source": "blencorp/claude-code-kit",
-      "skills": [
-        "route-tester"
-      ],
-      "phase": "/sdd-build",
-      "why": "Testes de rotas HTTP com autenticação (JWT/cookie) e integração.",
-      "when": {
-        "stacks": [
-          "backend"
-        ]
-      },
-      "recommended": false
-    },
-    {
-      "id": "skill-creator",
-      "source": "anthropics/skills",
-      "skills": [
-        "skill-creator"
-      ],
-      "phase": "manutenção",
-      "why": "Criar e testar skills próprias do projeto em .agents/skills.",
-      "when": {
-        "always": true
-      },
-      "recommended": true
-    },
-    {
-      "id": "security-audit",
-      "source": "cloudflare/security-audit-skill",
-      "skills": [
-        "security-audit"
-      ],
-      "phase": "auditoria do código inteiro (fora do diff)",
-      "why": "Auditoria de segurança em várias fases com achados verificados de forma independente e saída legível por máquina. Complementa a revisão diferencial (Trail of Bits), que olha só o diff.",
-      "when": {
-        "has_code": true
       },
       "recommended": true
     },
     {
       "id": "security-review",
+      "group": "Security",
       "source": "trailofbits/skills",
       "skills": [
         "differential-review",
@@ -563,6 +540,7 @@
     },
     {
       "id": "semgrep",
+      "group": "Security",
       "source": "trailofbits/skills",
       "skills": [
         "semgrep",
@@ -576,7 +554,22 @@
       "recommended": true
     },
     {
+      "id": "security-audit",
+      "group": "Security",
+      "source": "cloudflare/security-audit-skill",
+      "skills": [
+        "security-audit"
+      ],
+      "phase": "auditoria do código inteiro (fora do diff)",
+      "why": "Auditoria de segurança em várias fases com achados verificados de forma independente e saída legível por máquina. Complementa a revisão diferencial (Trail of Bits), que olha só o diff.",
+      "when": {
+        "has_code": true
+      },
+      "recommended": true
+    },
+    {
       "id": "supply-chain-risk-auditor",
+      "group": "Security",
       "source": "trailofbits/skills",
       "skills": [
         "supply-chain-risk-auditor"
@@ -595,6 +588,7 @@
     },
     {
       "id": "agentic-actions-auditor",
+      "group": "Security",
       "source": "trailofbits/skills",
       "skills": [
         "agentic-actions-auditor"
@@ -609,31 +603,89 @@
       "recommended": true
     },
     {
-      "id": "spec-to-code-compliance",
-      "source": "trailofbits/skills",
+      "id": "git-guardrails-claude-code",
+      "group": "Workflow",
+      "source": "mattpocock/skills",
       "skills": [
-        "spec-to-code-compliance"
+        "git-guardrails-claude-code"
       ],
-      "phase": "convergência (sdd-converger)",
-      "why": "Confronta código e spec: requisitos atendidos, contrariados, ausentes e comportamento não especificado.",
+      "phase": "setup",
+      "why": "Hook PreToolUse do Claude Code que bloqueia git destrutivo (push, reset --hard, clean -f, branch -D, checkout/restore .) antes de executar.",
       "when": {
         "always": true
       },
       "recommended": true
     },
     {
-      "id": "property-based-testing",
-      "source": "trailofbits/skills",
+      "id": "setup-pre-commit",
+      "group": "Workflow",
+      "source": "mattpocock/skills",
       "skills": [
-        "property-based-testing"
+        "setup-pre-commit"
       ],
-      "phase": "/sdd-build (event-module, qa)",
-      "why": "Guia de testes de propriedade (fast-check/hypothesis) para invariantes de domínio.",
+      "phase": "setup",
+      "why": "Husky + lint-staged + typecheck + testes no commit — cada onda do /sdd-build passa pelo gate.",
       "when": {
         "stacks": [
-          "fast-check",
-          "queue",
-          "pydantic"
+          "node"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "caveman",
+      "group": "Workflow",
+      "source": "JuliusBrussee/caveman",
+      "skills": [
+        "caveman"
+      ],
+      "phase": "sempre (estilo de resposta)",
+      "why": "Respostas telegráficas do agente para cortar tokens de saída.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "find-skills",
+      "group": "Workflow",
+      "source": "vercel-labs/skills",
+      "skills": [
+        "find-skills"
+      ],
+      "phase": "manutenção",
+      "why": "Descobre e instala skills do ecossistema skills.sh quando o agente precisa de uma capacidade que o projeto ainda não tem. ⚠ Sugere `npx skills add ... -g -y`: instala globalmente sem revisão. Prefira `sddkit add` no projeto.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "skill-creator",
+      "group": "Workflow",
+      "source": "anthropics/skills",
+      "skills": [
+        "skill-creator"
+      ],
+      "phase": "manutenção",
+      "why": "Criar e testar skills próprias do projeto em .agents/skills.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "deploy-to-vercel",
+      "group": "Workflow",
+      "source": "vercel-labs/agent-skills",
+      "skills": [
+        "deploy-to-vercel"
+      ],
+      "phase": "entrega",
+      "why": "Deploy de previews/produção na Vercel. ⚠ Envia um tarball do projeto (sem .git/.env) ao endpoint de deploy da Vercel; pede confirmação antes.",
+      "when": {
+        "stacks": [
+          "vercel"
         ]
       },
       "recommended": false

@@ -307,11 +307,14 @@ def suggestions(root: Path, info: dict) -> list[dict]:
     for e in catalog():
         if matches(e, info):
             out.append({**e, "tier": tier(e["source"]), "installed": all(s in have for s in e["skills"])})
-    return sorted(out, key=lambda e: e["tier"] != "oficial")
+    groups = json.loads((resources.files("sddkit") / "catalog.json").read_text(encoding="utf-8"))["groups"]
+    return sorted(out, key=lambda e: (groups.index(e["group"]), e["tier"] != "oficial"))
 
 
 def print_suggestions(sugs: list[dict]) -> None:
     for i, e in enumerate(sugs, 1):
+        if i == 1 or e["group"] != sugs[i - 2]["group"]:
+            say(f"  [{e['group']}]")
         mark = "✓" if e["installed"] else ("★" if e["recommended"] else " ")
         say(f"  {i:2}. {mark} {e['id']:30} [{e['phase']}] · {e['tier']} ({e['source']})")
         say(f"        {e['why']}")
