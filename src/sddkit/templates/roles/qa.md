@@ -4,7 +4,7 @@ description: Especialista de testes. Executa as tarefas das seções "### Tests"
 kind: implementer
 capabilities: [read, edit, write, shell]
 tier: fast
-skills: [tdd, webapp-testing]
+skills: [tdd, playwright-skill, webapp-testing, route-tester]
 route_globs: ["**/tests/**", "**/test/**", "**/__tests__/**", "**/e2e/**", "**/*.test.*", "**/*.spec.*", "**/*_test.*", "**/test_*.py", "**/playwright/**", "**/cypress/**"]
 route_keywords: [test, teste, tests, testes, e2e, contract test, integration test, teste de contrato, teste de integração, cenário, scenario]
 priority: 60

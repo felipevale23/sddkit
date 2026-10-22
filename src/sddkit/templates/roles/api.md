@@ -4,7 +4,7 @@ description: Especialista de back-end. Implementa endpoints, handlers, serviços
 kind: implementer
 capabilities: [read, edit, write, shell]
 tier: fast
-skills: [claude-api]
+skills: [claude-api, express, nodejs]
 route_globs: ["**/internal/**", "**/api/**", "**/routes/**", "**/controllers/**", "**/handlers/**", "**/services/**", "**/resolvers/**", "**/endpoints/**", "**/server/**", "**/*.controller.*", "**/*.service.*", "**/*.resolver.*", "**/*.proto", "**/*.graphql"]
 route_keywords: [api, endpoint, rota, route, controller, handler, service, serviço, webhook, integração, integration, graphql, grpc, rest]
 priority: 40

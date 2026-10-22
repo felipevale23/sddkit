@@ -80,11 +80,11 @@ Constituição ≠ memória: a constituição (`/speckit-constitution`) traz **p
 ## Subagents especialistas pré-definidos
 | Papel | Tipo | Modelo | Entra quando | Skills pré-carregadas (se instaladas) |
 |---|---|---|---|---|
-| `ui` | implementer | strong | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/`, `app/**/page.*`, "tela", "componente"… | frontend-design, vercel-react-best-practices, vercel-composition-patterns, web-design-guidelines |
-| `ui-reviewer` | reviewer (fim da história) | strong | a história tocou arquivos de UI | web-design-guidelines, webapp-testing |
-| `api` | implementer | fast | `api/`, `routes/`, `services/`, `*.controller.*`, "endpoint", "webhook"… | claude-api |
-| `data` | implementer | fast | `migrations/`, `prisma/`, `*.sql`, `models/`, "migration", "schema"… | domain-modeling |
-| `qa` | implementer | fast | seções `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, webapp-testing |
+| `ui` | implementer | strong | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/`, `app/**/page.*`, "tela", "componente"… | frontend-design, vercel-react-best-practices, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
+| `ui-reviewer` | reviewer (fim da história) | strong | a história tocou arquivos de UI | web-design-guidelines, playwright-skill, webapp-testing, apple-design, ui-ux-pro-max |
+| `api` | implementer | fast | `api/`, `routes/`, `services/`, `*.controller.*`, "endpoint", "webhook"… | claude-api, express, nodejs |
+| `data` | implementer | fast | `migrations/`, `prisma/`, `*.sql`, `models/`, "migration", "schema"… | domain-modeling, prisma |
+| `qa` | implementer | fast | seções `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, playwright-skill, webapp-testing, route-tester |
 | `security-reviewer` | reviewer (convergência) | strong | sempre, sobre o diff da feature | — |
 | `devops` | implementer | fast | `Dockerfile`, `.github/workflows/`, `*.tf`, "deploy"… | setup-pre-commit, deploy-to-vercel |
 | `docs` | implementer | fast | `docs/`, `README`, ADR, "quickstart"… | domain-modeling |

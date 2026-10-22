@@ -742,7 +742,14 @@
       "skills": [
         "frontend-design",
         "react-best-practices",
-        "web-design-guidelines"
+        "web-design-guidelines",
+        "ui-ux-pro-max",
+        "apple-design",
+        "cck-tailwindcss",
+        "cck-shadcn",
+        "cck-mui",
+        "cck-tanstack-query",
+        "cck-tanstack-router"
       ]
     },
     {
@@ -758,7 +765,8 @@
       "recommended": true,
       "skills": [
         "web-design-guidelines",
-        "webapp-testing"
+        "playwright",
+        "apple-design"
       ]
     },
     {
@@ -770,7 +778,11 @@
         ]
       },
       "recommended": true,
-      "skills": []
+      "skills": [
+        "claude-api",
+        "cck-express",
+        "cck-nodejs"
+      ]
     },
     {
       "id": "data",
@@ -782,7 +794,8 @@
       },
       "recommended": true,
       "skills": [
-        "domain-modeling"
+        "domain-modeling",
+        "cck-prisma"
       ]
     },
     {
@@ -793,7 +806,9 @@
       },
       "recommended": true,
       "skills": [
-        "tdd"
+        "tdd",
+        "playwright",
+        "cck-route-tester"
       ]
     },
     {

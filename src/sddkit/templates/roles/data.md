@@ -4,7 +4,7 @@ description: Especialista de dados. Implementa schema, migrations, models/entida
 kind: implementer
 capabilities: [read, edit, write, shell]
 tier: fast
-skills: [domain-modeling]
+skills: [domain-modeling, prisma]
 route_globs: ["**/migrations/**", "**/migration/**", "**/*.sql", "**/prisma/**", "**/*.prisma", "**/schema/**", "**/models/**", "**/entities/**", "**/*.entity.*", "**/repositories/**", "**/seeds/**", "**/alembic/**", "**/db/**", "**/drizzle/**"]
 route_keywords: [migration, migração, schema, tabela, table, model, entidade, entity, índice, index, seed, query, repositório, repository, banco, database]
 priority: 45

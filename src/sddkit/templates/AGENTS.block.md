@@ -25,6 +25,8 @@ Se a sua ferramenta não aceita `/comando`, leia e siga `.agents/skills/<comando
 - Subagents não criam subagents.
 - Roteamento: o `/sdd-build` envia cada tarefa ao especialista cujos `route_globs`/`route_keywords` casam; `[@papel]` na linha da tarefa força. Sem match → `sdd-implementer`.
 - Revisores (`kind: reviewer`) não editam código: gravam relatório em `FEATURE_DIR/reviews/` e devolvem tarefas de correção.
+- O formato de saída definido no papel vence skills de estilo (ponytail, caveman): o resumo volta ao orquestrador exatamente nesse formato.
+- Dentro do `/sdd-build`, revisão vem dos revisores do sddkit e do `sdd-converger`: não dispare `requesting-code-review` por tarefa. `using-git-worktrees` e `finishing-a-development-branch` só depois da convergência, sobre a branch `NNN-slug` da feature.
 
 ## Regras
 1. **Constituição primeiro** (`.specify/memory/constitution.md`). Violação só com justificativa em "Complexity Tracking" do plan.md.

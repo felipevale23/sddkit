@@ -49,8 +49,9 @@ O `waves.py` devolve, por tarefa, `agent` (papel que executa) e `routed_by` (`ta
 8. Checkpoint de fase (`**Checkpoint**` em tasks.md)? Reporte em 1 linha e siga.
 
 ## 3. Convergência
-1. Em paralelo: `sdd-converger` com `FEATURE_DIR` **e** cada revisor de `reviews` com `at: converge` (ex.: `security-reviewer`).
-2. Tarefas CRITICAL/HIGH dos revisores → anexe ao fim de tasks.md numa fase `## Review fixes (converge)`.
+1. Em paralelo: `sdd-converger` com `FEATURE_DIR` **e** cada revisor de `reviews` com `at: converge` (ex.: `security-reviewer`) **e**, se `.agents/skills/spec-to-code-compliance/` existir, a checagem de conformidade abaixo (é sua: papéis não criam subagents).
+   - **Conformidade spec × código.** Documento: `spec.md` + `contracts/`; código: os arquivos da feature. Se o comando `/spec-to-code-compliance:spec-compliance` existir (plugin instalado), rode-o com esses caminhos. Senão, reproduza o método da skill: um subagent somente leitura por FR/SC (até `--max-parallel` por vez), seguindo `resources/ANALYSIS_FORMAT.md` e `resources/DIVERGENCE_RUBRIC.md` da skill e devolvendo veredito (`implemented`, `partial`, `contradicted`, `stronger-than-spec`, `absent`, `undecidable`), linhas lidas e buscas feitas; cada veredito diferente de `implemented` vai a um segundo subagent, que não o produziu, para tentar refutá-lo — descarte o que cair. Grave em `FEATURE_DIR/reviews/spec-compliance.md`. Sem subagents na ferramenta: pule (feita inline, a checagem perde a confiabilidade) e registre no relatório final.
+2. Tarefas CRITICAL/HIGH dos revisores e vereditos `partial`/`contradicted`/`absent` da conformidade → anexe ao fim de tasks.md numa fase `## Review fixes (converge)`. `stronger-than-spec`/`undecidable` → liste no relatório como ajustes de spec.
    - `PLANO PENDENTE` (ex.: `sast-scanner`): mostre o plano ao usuário e pergunte. Aprovado → grave-o em `.agents/security/semgrep-plan.json` (linguagens, rulesets, engine, modo, data, quem aprovou) e relance o revisor. Recusado → registre no relatório final.
    - `NÃO EXECUTADO` (ferramenta ausente): não bloqueia; liste no relatório final com o comando de instalação sugerido.
 3. `CONVERGED` e revisores `APROVADO` → relatório.
@@ -58,4 +59,4 @@ O `waves.py` devolve, por tarefa, `agent` (papel que executa) e `routed_by` (`ta
 5. Hooks `after_implement`.
 
 ## Relatório final (≤ 10 linhas)
-Ondas (paralelas/sequenciais) · tarefas por papel · OK / refeitas / bloqueadas · vereditos dos revisores (com caminhos de `FEATURE_DIR/reviews/`) · testes · veredito do converger · commits · próximo passo (próxima história, `/speckit-taskstoissues` ou PR).
+Ondas (paralelas/sequenciais) · tarefas por papel · OK / refeitas / bloqueadas · vereditos dos revisores (com caminhos de `FEATURE_DIR/reviews/`) · testes · veredito do converger · conformidade (vereditos por FR/SC ou "não executada") · commits · próximo passo (próxima história, `/speckit-taskstoissues` ou PR).

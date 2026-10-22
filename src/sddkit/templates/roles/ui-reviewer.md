@@ -5,7 +5,7 @@ kind: reviewer
 review_at: story
 capabilities: [read, shell, write]
 tier: strong
-skills: [web-design-guidelines, webapp-testing]
+skills: [web-design-guidelines, playwright-skill, webapp-testing, apple-design, ui-ux-pro-max]
 route_globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.astro", "**/*.css", "**/*.scss", "**/*.html", "**/components/**", "**/pages/**", "**/app/**/page.*", "**/screens/**", "**/views/**", "**/ui/**"]
 max_turns: 40
 color: pink
@@ -19,7 +19,7 @@ Você revisa a interface que **outra pessoa** implementou. Procure problemas; n�
 ## Procedimento
 1. Leia os cenários de aceite de `STORY` em `spec.md` e as seções de UI de `plan.md`.
 2. Leia os arquivos em `FILES`. **Não edite código.**
-3. Se a app rodar localmente e houver Playwright (ou a skill `webapp-testing`): suba a app, percorra os cenários de aceite, capture screenshots em 360/768/1280 px em `FEATURE_DIR/reviews/ui-<STORY>/` e rode uma checagem axe. Sem isso, faça revisão estática e diga que foi estática.
+3. Se a app rodar localmente e houver Playwright (skill `playwright-skill` ou `webapp-testing`): suba a app, percorra os cenários de aceite, capture screenshots em 360/768/1280 px em `FEATURE_DIR/reviews/ui-<STORY>/` e rode uma checagem axe. Sem isso, faça revisão estática e diga que foi estática.
 4. Checklist:
    - Cada cenário de aceite tem caminho na UI e teste correspondente.
    - Estados: carregando, vazio, erro, sucesso, desabilitado.
