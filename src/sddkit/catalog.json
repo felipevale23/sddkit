@@ -169,6 +169,54 @@
       "recommended": true
     },
     {
+      "id": "solid",
+      "group": "Coding",
+      "source": "ramziddin/solid-skills",
+      "skills": [
+        "solid"
+      ],
+      "phase": "/sdd-build (backend)",
+      "why": "OOP com SOLID, TDD e clean code. Só no backend: pré-carregada pelos papéis api, data, event-module e queue-worker. ⚠ Contradiz o ponytail (interfaces e camadas): o /sdd-stack registra qual vence no backend.",
+      "when": {
+        "stacks": [
+          "backend"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "clean-architecture",
+      "group": "Coding",
+      "source": "wondelai/skills",
+      "skills": [
+        "clean-architecture"
+      ],
+      "phase": "/speckit-plan e /sdd-build (backend)",
+      "why": "Regra de dependência (frameworks → casos de uso → entidades), portas e adaptadores, arquitetura hexagonal/onion. Só no backend.",
+      "when": {
+        "stacks": [
+          "backend"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "domain-driven-design",
+      "group": "Coding",
+      "source": "wondelai/skills",
+      "skills": [
+        "domain-driven-design"
+      ],
+      "phase": "/speckit-plan (data-model) e /sdd-build (backend)",
+      "why": "Bounded contexts, agregados, linguagem ubíqua e eventos de domínio. Mais completa que domain-modeling. Só no backend.",
+      "when": {
+        "stacks": [
+          "backend"
+        ]
+      },
+      "recommended": false
+    },
+    {
       "id": "cck-express",
       "group": "Coding",
       "source": "blencorp/claude-code-kit",

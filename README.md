@@ -142,7 +142,18 @@ A entrevista vem em **rodadas**. Cada pergunta traz uma **resposta recomendada**
 ➡️ PostgreSQL: dados de faturas são relacionais e precisam de transação.
 ```
 
-Ela segue uma árvore de decisões: produto e escala → equipe → forma (monólito, monorepo, serviços) → linguagem → frontend → mobile/desktop → backend e contratos → dados → filas e tempo real → autenticação → integrações → hospedagem → qualidade e CI. Ramos que não se aplicam são pulados. O que já existe no repositório (manifestos, código, constituição) entra como fato, não como pergunta. A preferência é por tecnologia **madura e conhecida pela equipe**, com o mínimo de peças.
+Ela segue uma árvore de decisões: produto e escala → equipe → forma (monólito, monorepo, serviços) → linguagem → frontend → mobile/desktop → backend e contratos → **paradigma do backend** → dados → filas e tempo real → autenticação → integrações → hospedagem → qualidade e CI. Ramos que não se aplicam são pulados. O que já existe no repositório (manifestos, código, constituição) entra como fato, não como pergunta. A preferência é por tecnologia **madura e conhecida pela equipe**, com o mínimo de peças.
+
+**Paradigma, só no backend.** Uma das perguntas define como o código de backend é escrito:
+- **estilo:** OOP com SOLID, funcional, ou pragmático (o padrão: abstração só quando há 2+ implementações);
+- **arquitetura:** camadas simples, clean/hexagonal ou DDD;
+- **pastas** que são backend.
+
+O frontend nunca entra nessa regra: segue o idioma do framework. Escolhendo OOP, clean ou DDD:
+- `coding-standards.md` ganha a seção `## Backend — paradigma`, com regras e exemplos;
+- a memória do projeto registra que o paradigma vale **só** nessas pastas e que, ali, ele vence o `ponytail` sobre interfaces e camadas;
+- as skills `solid`, `clean-architecture` e `domain-driven-design` (opcionais, do catálogo) são carregadas **só** pelos subagents de backend (`api`, `data`, `event-module`, `queue-worker`), nunca pelo `ui`;
+- o lint impõe as fronteiras de verdade, restrito às pastas de backend: `dependency-cruiser` ou `eslint-plugin-boundaries` (TS) e `import-linter` (Python) para camadas; `eslint-plugin-functional` para o estilo funcional. Skill orienta; só o lint barra.
 
 No fim aparece um resumo (camada · escolha · por quê · alternativa descartada). Só depois do seu "sim" ele grava:
 - `.agents/specs/stack.md`: cada camada com versão e bibliotecas pelo nome do pacote, mais as decisões e o porquê;
@@ -420,13 +431,13 @@ Um **subagent** é um agente com contexto limpo e um único trabalho. O orquestr
 | Papel | Tipo | Entra quando a tarefa toca… | Skills que carrega (se instaladas) |
 |---|---|---|---|
 | `ui` | implementa | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/` | frontend-design, vercel-react-best-practices, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
-| `api` | implementa | `api/`, `routes/`, `services/`, `*.controller.*` | claude-api, express, nodejs |
-| `data` | implementa | `migrations/`, `prisma/`, `*.sql`, `models/` | domain-modeling, prisma |
+| `api` | implementa | `api/`, `routes/`, `services/`, `*.controller.*` | claude-api, express, nodejs, solid, clean-architecture, domain-driven-design |
+| `data` | implementa | `migrations/`, `prisma/`, `*.sql`, `models/` | domain-modeling, prisma, domain-driven-design, clean-architecture |
 | `qa` | implementa | `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, playwright-skill, webapp-testing, route-tester |
 | `devops` | implementa | `Dockerfile`, `.github/workflows/`, `*.tf` | setup-pre-commit, deploy-to-vercel |
 | `docs` | implementa | `docs/`, `README`, ADRs | domain-modeling |
-| `event-module` | implementa | `modules/`, `domain/`, `events/` (lógica pura, sem IO) | property-based-testing |
-| `queue-worker` | implementa | `workers/`, `queues/`, `*.worker.ts` | — |
+| `event-module` | implementa | `modules/`, `domain/`, `events/` (lógica pura, sem IO) | property-based-testing, domain-driven-design, solid, clean-architecture |
+| `queue-worker` | implementa | `workers/`, `queues/`, `*.worker.ts` | clean-architecture, solid |
 | `bill-parser` | implementa | `parsers/`, `faturas/`, `layouts/` | — |
 | `ui-reviewer` | revisa (fim da história) | a história tocou UI | web-design-guidelines, playwright-skill, webapp-testing, apple-design, ui-ux-pro-max |
 | `security-reviewer` | revisa (convergência) | sempre, o diff da feature | differential-review, fp-check, variant-analysis |
@@ -472,7 +483,7 @@ max_turns: 40
 | Grupo | Para quê | Skills (★ = instalada por padrão) |
 |---|---|---|
 | **Starting** | afiar ideias e entender código existente | ★ grill-me · grill-with-docs · domain-modeling · ★ improve-codebase-architecture · planning-with-files |
-| **Coding** | padrões de código e frameworks | ★ ponytail · ★ react-best-practices · ★ react-native · ★ mcp-builder · ★ claude-api · Claude Code Kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs |
+| **Coding** | padrões de código e frameworks | ★ ponytail · ★ react-best-practices · ★ react-native · ★ mcp-builder · ★ claude-api · Claude Code Kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs · **paradigma, só backend:** solid, clean-architecture, domain-driven-design |
 | **UI** | design e interface | ★ frontend-design · web-design-guidelines · impeccable · ★ apple-design · ★ ui-ux-pro-max · theme-factory |
 | **Testing** | testes e depuração | ★ tdd · ★ diagnosing-bugs · webapp-testing · ★ playwright · property-based-testing · cck-route-tester |
 | **Review** | revisão e verificação | ★ superpowers · ★ spec-to-code-compliance |

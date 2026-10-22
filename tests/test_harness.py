@@ -248,6 +248,30 @@ def test_declared_stack_drives_suggestions_before_any_manifest():
     assert "/sdd-stack" not in sdd(root, *OFFLINE_INIT).stdout          # stack preenchida: não sugere de novo
 
 
+def test_paradigm_skills_only_for_backend_code():
+    back = project({"package.json": json.dumps({"dependencies": {"express": "4"}})})
+    front = project({"package.json": json.dumps({"dependencies": {"react": "19"}})})
+    para = {"solid", "clean-architecture", "domain-driven-design"}
+    sk = {s["id"]: s for s in json.loads(sdd(back, "suggest", "--json").stdout)["skills"]}
+    assert para <= set(sk) and not any(sk[i]["recommended"] for i in para)      # opcionais
+    assert not para & {s["id"] for s in json.loads(sdd(front, "suggest", "--json").stdout)["skills"]}
+    sdd(back, *OFFLINE_INIT)
+    for name in ("solid", "frontend-design"):                                    # finge as skills instaladas
+        (back / ".agents/skills" / name).mkdir(parents=True)
+        (back / ".agents/skills" / name / "SKILL.md").write_text(f"---\nname: {name}\ndescription: x\n---\n")
+    sdd(back, "role", "add", "api", "ui", "--no-skills")
+    sdd(back, "sync")
+    assert "solid" in frontmatter_skills((back / ".claude/agents/api.md").read_text())
+    assert "solid" not in frontmatter_skills((back / ".claude/agents/ui.md").read_text())
+    # o que o /sdd-stack grava: escopo global + regra só nas pastas de backend
+    sdd(back, "memory", "add", "Paradigma OOP/SOLID só no backend (server/**)", "-t", "paradigma")
+    sdd(back, "memory", "add", "Entidades protegem as próprias invariantes", "-t", "paradigma-backend", "--paths", "server/**")
+    agents = (back / "AGENTS.md").read_text()
+    assert "Paradigma OOP/SOLID só no backend" in agents
+    rule = (back / ".claude/rules/sddkit-memory-paradigma-backend.md").read_text()
+    assert '"server/**"' in rule and "Entidades protegem" in rule
+
+
 def test_role_preloads_only_installed_skills():
     root = project(NODE_APP)
     sdd(root, *OFFLINE_INIT)
