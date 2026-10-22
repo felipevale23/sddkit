@@ -588,7 +588,7 @@ sddkit ci            # .github/workflows/sddkit.yml
 sddkit ci --audit    # + .github/workflows/sddkit-audit.yml
 ```
 - **`sddkit.yml`** (cada push/PR): `sddkit sync --check` **falha** o PR se algum arquivo gerado estiver desatualizado ou editado à mão; `sddkit doctor` roda como relatório (não falha até o projeto zerar as pendências; tire o `continue-on-error` quando quiser que falhe).
-- **`sddkit-audit.yml`** (segunda-feira 06:00 UTC, ou à mão em *Actions → sddkit-audit → Run workflow*): o Claude Code ([claude-code-action](https://github.com/anthropics/claude-code-action)) roda o `/sdd-audit --issue` e abre uma **issue** com o relatório. Tem permissão só de leitura no código e de escrita em issues: não faz commit nem push. Requer o secret `ANTHROPIC_API_KEY` no repositório.
+- **`sddkit-audit.yml`** (segunda-feira 06:00 UTC, ou à mão em *Actions → sddkit-audit → Run workflow*): o Claude Code ([claude-code-action](https://github.com/anthropics/claude-code-action)) roda o `/sdd-audit --issue` e abre uma **issue** com o relatório. Tem permissão só de leitura no código e de escrita em issues: não faz commit nem push. Requer **um** secret no repositório: `CLAUDE_CODE_OAUTH_TOKEN` (assinatura Claude Pro/Max, gerado com `claude setup-token`; usa o limite do plano, sem créditos de API) ou `ANTHROPIC_API_KEY` (créditos de API).
 - Os workflows fixam a versão do sddkit que os gerou (`…/sddkit@v0.6.0`): o CI não muda de comportamento sozinho. Depois de atualizar o sddkit, `sddkit ci --force` (ou edite a versão à mão).
 - Os arquivos são criados uma vez e são seus: edite à vontade (horário, comandos); `--force` recria.
 
@@ -699,5 +699,15 @@ Clona o repositório numa pasta temporária (só arquivos versionados, nada de `
 - a guarda de segredos contra todos os arquivos versionados.
 
 Segredos aparecem só como tipo e linha, nunca o valor.
+
+### Benchmark com agente de IA
+```bash
+python bench/agent.py <repo> --smoke                                   # confere login, isolamento e medição
+python bench/agent.py <repo> --request pedido.md --setup "npm ci" --test "npm test" --out relatorio.md
+```
+Roda o mesmo pedido em cópias novas do repositório: **com o sddkit** (`/sdd-feature --auto` + `/sdd-build --mvp`) e **sem** (um prompt direto, "implemente com testes"). Compara tempo, turnos, tokens, commits, arquivos alterados e testes; na variante sddkit, também os artefatos da feature e o `doctor`.
+
+- Usa o Claude Code em modo headless (`claude -p`) e funciona com **assinatura** (login claude.ai), sem créditos de API, mas consome o limite do plano: uma execução completa leva dezenas de minutos.
+- Isolamento: clone sem remote (o agente não consegue dar push); `--setting-sources project` (suas configurações, plugins e CLAUDE.md pessoais ficam fora); `--permission-mode dontAsk` com lista de permissões; sem acesso à web.
 
 O catálogo de skills fica em `src/sddkit/catalog.json` (fonte, skills, grupo, quando sugerir, recomendada ou não); os templates de skills, papéis e specs em `src/sddkit/templates/`.

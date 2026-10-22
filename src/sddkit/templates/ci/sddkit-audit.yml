@@ -1,6 +1,8 @@
 # Gerado por `sddkit ci --audit` (uma vez; é seu, edite à vontade).
 # Auditoria semanal com o Claude Code: roda /sdd-audit e abre uma issue com o relatório.
-# Requer o secret ANTHROPIC_API_KEY. Não faz commit nem push: só lê o código e abre a issue.
+# Autenticação (um dos dois secrets): CLAUDE_CODE_OAUTH_TOKEN — assinatura Claude Pro/Max, gerado com
+# `claude setup-token` (usa o limite do plano, sem créditos de API) — ou ANTHROPIC_API_KEY (créditos de API).
+# Não faz commit nem push: só lê o código e abre a issue.
 name: sddkit-audit
 
 on:
@@ -26,6 +28,7 @@ jobs:
       - run: uv tool install --from {source} sddkit
       - uses: anthropics/claude-code-action@v1
         with:
+          claude_code_oauth_token: ${{{{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}}}
           anthropic_api_key: ${{{{ secrets.ANTHROPIC_API_KEY }}}}
           prompt: |
             REPO: ${{{{ github.repository }}}}

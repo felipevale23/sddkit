@@ -700,7 +700,8 @@ def cmd_ci(args) -> int:
         dst.write_text((tpl() / "ci" / n).read_text(encoding="utf-8").format(source=SDDKIT_SOURCE), encoding="utf-8")
         say(f"✓ {dst.relative_to(root)}")
     if args.audit:
-        say("  → crie o secret ANTHROPIC_API_KEY no repositório (Settings → Secrets and variables → Actions)")
+        say("  → crie UM secret no repositório (Settings → Secrets and variables → Actions):")
+        say("     CLAUDE_CODE_OAUTH_TOKEN (assinatura Pro/Max: rode `claude setup-token`) ou ANTHROPIC_API_KEY (créditos de API)")
         say("  → a auditoria roda toda segunda às 06:00 UTC ou à mão em Actions → sddkit-audit → Run workflow")
     return 0
 
