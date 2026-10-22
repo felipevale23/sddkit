@@ -311,6 +311,22 @@ def test_doctor_flags_real_drift_without_false_positives():
     assert "2026-07-02-a.md" not in drift.split("CRs com campo feature")[1]
 
 
+def test_doctor_fix_applies_only_mechanical_fixes():
+    files = dict(PHOTON_LIKE)
+    files[".agents/specs/changes/2026-09-07-b.md"] = ("---\nid: CHANGE-011\ntitle: B\nstatus: Implemented (2026-09-30, uncommitted)\n"
+                                                    "---\nMexe em `001-auth` e nada mais.\n")
+    files["specs/005-legacy/spec.md"] = "# Feature Specification: Legacy\n"
+    root = project(files)
+    out = sdd(root, "doctor", "--fix", ok=False).stdout
+    b = (root / ".agents/specs/changes/2026-09-07-b.md").read_text()
+    assert "status: Implemented\n" in b and "Status anterior" in b and 'feature: "001"' in b
+    assert (root / ".agents/specs/features/005-legacy/spec.md").exists() and not (root / "specs").exists()
+    assert not (root / ".agents/skills").exists() and not (root / ".agents/agents").exists()  # regressão: --fix instalava templates
+    assert "status de CR no enum" in out
+    again = sdd(root, "doctor", "--fix", ok=False).stdout
+    assert "0 correção(ões) aplicada(s)" in again and not (root / ".agents/skills").exists()
+
+
 def test_doctor_clean_after_index_on_fresh_project():
     root = project()
     sdd(root, *OFFLINE_INIT)

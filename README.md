@@ -230,7 +230,7 @@ sddkit init                    # detecta a stack pelo código e sugere papéis/s
 ### Projeto que já usa Spec Kit
 - O `init` **não reinstala** o Spec Kit se `.specify/` existe: mantém sua constituição e templates.
 - Specs em `specs/NNN-…` (o padrão do Spec Kit)? Mova as pastas para `.agents/specs/features/` (mantendo os nomes `NNN-slug`); o `doctor` aponta as que ficaram para trás.
-- Rode `sddkit doctor` e trate os ✗ em ordem. Itens mecânicos (status de CR fora do padrão, índice desatualizado) são rápidos; itens de julgamento (a que feature pertence cada CR, o que a arquitetura deveria dizer) são seus.
+- Rode `sddkit doctor --fix`: ele aplica sozinho as correções mecânicas (veja a [seção 11](#11-o-doctor-saúde-e-drift)) e lista o que sobrou. Os itens que sobram pedem julgamento seu: ids de CR duplicados, o que a arquitetura deveria dizer, features sem spec.
 - `sddkit index` gera o `features.md`. Se você tinha uma tabela escrita à mão, apague-a: o índice gerado fica entre marcadores e se mantém sozinho.
 
 ---
@@ -500,6 +500,20 @@ sddkit doctor
 
 O `doctor` **só lê**: pode rodar à vontade, inclusive no CI. Sai com código 1 se houver pendência.
 
+### `sddkit doctor --fix`
+Antes de checar, aplica as correções que não pedem julgamento, e só elas:
+
+| Corrige | Como |
+|---|---|
+| status de CR com texto extra (`Implemented (2026-09-30, uncommitted)`) | vira `Implemented`; o texto original vai para o corpo do CR |
+| CR sem `feature:` | preenche **só** quando o corpo cita exatamente uma pasta de feature existente |
+| features em `specs/NNN-…` | move para `.agents/specs/features/` (se o nome não estiver ocupado) |
+| `.specify/feature.json` apontando para o nada | corrige se a pasta foi movida; senão apaga (o próximo `/speckit-specify` recria) |
+| `CLAUDE.md` sem `@AGENTS.md` (com `.claude/` no projeto) | acrescenta o import |
+| índice, arquivos gerados e templates intocados | regenera e atualiza (nunca sobrescreve edição à mão; nunca instala nada novo) |
+
+Fica com você: ids de CR duplicados (commits já citam o id), o que os docs devem dizer, features sem spec. Rodar de novo não muda nada. Faça commit antes e revise com `git diff`.
+
 ---
 
 ## 12. Referência de comandos
@@ -517,7 +531,7 @@ sddkit playbook new "nome"
 sddkit index                                  # regenera .agents/specs/features.md
 sddkit commitlint [--no-install]
 sddkit sync [--agents …] [--copy] [--check] [--force]   # regenera AGENTS.md, índice e adaptadores a partir de .agents/
-sddkit doctor
+sddkit doctor [--fix]
 ```
 
 ### No agente

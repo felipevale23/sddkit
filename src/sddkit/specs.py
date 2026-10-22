@@ -290,3 +290,71 @@ def drift_checks(root: Path, info: dict) -> list[tuple[bool, str, str, list[str]
         out.append((cm.exists() and "@AGENTS.md" in cm.read_text(encoding="utf-8"), "CLAUDE.md importa @AGENTS.md",
                     "sddkit sync --agents claude (ou crie CLAUDE.md com @AGENTS.md)", []))
     return out
+
+
+# ───────────────────────── correções mecânicas (doctor --fix) ─────────────────────────
+def _set_front(text: str, key: str, value: str) -> str:
+    """Troca/insere `key: value` só dentro do frontmatter, preservando o resto do arquivo."""
+    end = text.index("\n---", 3)
+    front, rest = text[:end], text[end:]
+    line = f"{key}: {value}"
+    if re.search(rf"(?m)^{key}:", front):
+        front = re.sub(rf"(?m)^{key}:.*$", lambda _: line, front, count=1)
+    else:
+        front += "\n" + line
+    return front + rest
+
+
+def fix(root: Path) -> list[str]:
+    """Aplica só as correções que não pedem julgamento. Devolve o que foi feito."""
+    done = []
+    feats = {f["dir"].name: f["id"] for f in load_features(root)}
+    for c in load_changes(root):
+        f, text, rel = c["file"], c["file"].read_text(encoding="utf-8"), c["file"].name
+        st = str(c.get("status", "")).strip()
+        canon = next((s for s in CR_STATUS if st.lower().startswith(s.lower())), None)
+        if canon and st != canon:
+            text = _set_front(text, "status", canon)
+            text = text.rstrip() + f"\n\n> Status anterior (movido do frontmatter pelo `sddkit doctor --fix`): {st}\n"
+            done.append(f"{rel}: status `{st}` → `{canon}` (nota movida para o corpo)")
+        if not str(c.get("feature", "")).strip():
+            _, body = parse(text)
+            hits = {feats[n] for n in feats if re.search(rf"(?<![\w-]){re.escape(n)}(?![\w-])", body)}
+            if len(hits) == 1:
+                fid = hits.pop()
+                text = _set_front(text, "feature", f'"{fid}"')
+                done.append(f"{rel}: feature `{fid}` (o corpo cita só essa pasta de feature)")
+        if text != f.read_text(encoding="utf-8"):
+            f.write_text(text, encoding="utf-8")
+
+    old = root / "specs"
+    if old.is_dir():
+        dest = root / SPECS / "features"
+        for d in sorted(p for p in old.glob("[0-9]*-*") if p.is_dir()):
+            if not (dest / d.name).exists():
+                dest.mkdir(parents=True, exist_ok=True)
+                d.rename(dest / d.name)
+                done.append(f"specs/{d.name} → {SPECS}/features/{d.name}")
+        if not any(old.iterdir()):
+            old.rmdir()
+
+    fj = root / ".specify" / "feature.json"
+    if fj.exists():
+        try:
+            cur = json.loads(fj.read_text(encoding="utf-8")).get("feature_directory", "")
+        except json.JSONDecodeError:
+            cur = ""
+        moved = f"{SPECS.as_posix()}/features/{Path(cur).name}" if cur.startswith("specs/") else None
+        if moved and (root / moved).is_dir():
+            fj.write_text(json.dumps({"feature_directory": moved}, indent=2) + "\n", encoding="utf-8")
+            done.append(f".specify/feature.json → {moved}")
+        elif not cur or not (root / cur).is_dir():
+            fj.unlink()
+            done.append(f".specify/feature.json removido (apontava para `{cur or '—'}`, que não existe)")
+
+    cm = root / "CLAUDE.md"
+    if (root / ".claude").is_dir() and "@AGENTS.md" not in (cm.read_text(encoding="utf-8") if cm.exists() else ""):
+        cur = cm.read_text(encoding="utf-8") if cm.exists() else ""
+        cm.write_text((cur.rstrip() + "\n\n" if cur.strip() else "") + "@AGENTS.md\n", encoding="utf-8")
+        done.append("CLAUDE.md importa @AGENTS.md")
+    return done

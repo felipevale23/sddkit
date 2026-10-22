@@ -207,12 +207,14 @@ def install_template(src: Path, dst: Path, root: Path, cfg: dict, force: bool) -
     return "atualizado" if existed else "criado"
 
 
-def copy_templates(root: Path, force: bool, cfg: dict) -> dict[str, list[str]]:
+def copy_templates(root: Path, force: bool, cfg: dict, only_existing: bool = False) -> dict[str, list[str]]:
     res: dict[str, list[str]] = {}
     src = tpl()
     for sub in ("agents", "skills", "hooks"):
         for f in sorted(p for p in (src / sub).rglob("*") if p.is_file()):
             dst = root / ".agents" / f.relative_to(src)
+            if only_existing and not dst.exists():
+                continue
             res.setdefault(install_template(f, dst, root, cfg, force), []).append(dst.relative_to(root).as_posix())
     return res
 
@@ -472,8 +474,8 @@ def do_sync(root: Path, cfg: dict, check: bool = False, force: bool = False) -> 
     return out
 
 
-def refresh_index(root: Path) -> None:
-    """Atualiza só o features.md (fora do sync), mantendo o hash do bloco no sddkit.json."""
+def refresh_index(root: Path) -> bool:
+    """Atualiza só o features.md (fora do sync), mantendo o hash do bloco no sddkit.json. True se mudou."""
     cfg = load_cfg(root)
     out = Out(root, cfg)
     specs.write_index(root, out)
@@ -481,6 +483,7 @@ def refresh_index(root: Path) -> None:
     save_cfg(root, cfg)
     for line in out.report():
         say(line)
+    return bool(out.changes)
 
 
 def cmd_suggest(args) -> int:
@@ -745,6 +748,22 @@ def cmd_commitlint(args) -> int:
 
 def cmd_doctor(args) -> int:
     root = Path(args.dir).resolve()
+    if args.fix:
+        cfg = load_cfg(root)
+        done = specs.fix(root)
+        agents_md = root / "AGENTS.md"
+        initialized = (root / CONFIG).exists() and agents_md.exists() and BEGIN in agents_md.read_text(encoding="utf-8")
+        res = copy_templates(root, False, cfg, only_existing=True) if initialized else {}  # --fix nunca instala nada novo
+        done += [f"template atualizado: {r}" for r in res.get("atualizado", [])]
+        if initialized:
+            sync = do_sync(root, cfg)
+            done += [f"regenerado: {r}" for r in sync.changes]
+        elif (root / specs.SPECS).is_dir() and refresh_index(root):
+            done.append(f"{specs.SPECS}/features.md atualizado")
+        say(f"sddkit doctor --fix — {len(done)} correção(ões) aplicada(s):")
+        for d in done:
+            say(f"  ✓ {d}")
+        say("  (sem julgamento só: ids duplicados, o que os docs devem dizer e features sem spec ficam com você)\n")
     cfg = load_cfg(root)
     problems = 0
 
@@ -911,6 +930,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("doctor", help="verifica a instalação e o drift entre specs e código")
     p.add_argument("dir", nargs="?", default=".")
+    p.add_argument("--fix", action="store_true", help="aplica antes as correções mecânicas (status de CR, feature inferida, índice, pastas fora do lugar, gerados e templates intocados)")
     p.set_defaults(fn=cmd_doctor)
 
     args = ap.parse_args(argv)
