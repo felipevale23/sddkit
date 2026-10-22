@@ -1,6 +1,6 @@
 [project]
 name = "sddkit"
-version = "0.7.0"
+version = "0.8.0"
 description = "Scaffolding agnóstico de Spec-Driven Development (GitHub Spec Kit) com skills e subagents em .agents/"
 readme = "README.md"
 requires-python = ">=3.10"

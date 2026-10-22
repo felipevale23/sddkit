@@ -72,7 +72,7 @@ Tudo fica em `AGENTS.md` e na pasta `.agents/`, que Codex, Cursor, Copilot, Amp,
 
 ```bash
 uv tool install specify-cli                                      # o Spec Kit
-uv tool install git+https://github.com/felipevale23/sddkit@v0.7.0   # o sddkit (sem @versão: o main mais recente)
+uv tool install git+https://github.com/felipevale23/sddkit@v0.8.0   # o sddkit (sem @versão: o main mais recente)
 ```
 
 Trabalhando no código do sddkit? `uv tool install --editable ./sddkit`.
@@ -370,7 +370,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
-      - run: uvx --from git+https://github.com/felipevale23/sddkit@v0.7.0 sddkit sync --check
+      - run: uvx --from git+https://github.com/felipevale23/sddkit@v0.8.0 sddkit sync --check
 ```
 
 > Arquivos não são marcados como somente leitura de propósito: o git não guarda essa permissão (um clone volta a ter tudo gravável) e agentes e editores costumam falhar de jeito confuso. O hash + `--check` dá a mesma garantia sem esses efeitos.
@@ -589,7 +589,7 @@ sddkit ci --audit    # + .github/workflows/sddkit-audit.yml
 ```
 - **`sddkit.yml`** (cada push/PR): `sddkit sync --check` **falha** o PR se algum arquivo gerado estiver desatualizado ou editado à mão; `sddkit doctor` roda como relatório (não falha até o projeto zerar as pendências; tire o `continue-on-error` quando quiser que falhe).
 - **`sddkit-audit.yml`** (segunda-feira 06:00 UTC, ou à mão em *Actions → sddkit-audit → Run workflow*): o Claude Code ([claude-code-action](https://github.com/anthropics/claude-code-action)) roda o `/sdd-audit --issue` e abre uma **issue** com o relatório. Tem permissão só de leitura no código e de escrita em issues: não faz commit nem push. Requer **um** secret no repositório: `CLAUDE_CODE_OAUTH_TOKEN` (assinatura Claude Pro/Max, gerado com `claude setup-token`; usa o limite do plano, sem créditos de API) ou `ANTHROPIC_API_KEY` (créditos de API).
-- Os workflows fixam a versão do sddkit que os gerou (`…/sddkit@v0.7.0`): o CI não muda de comportamento sozinho. Depois de atualizar o sddkit, `sddkit ci --force` (ou edite a versão à mão).
+- Os workflows fixam a versão do sddkit que os gerou (`…/sddkit@v0.8.0`): o CI não muda de comportamento sozinho. Depois de atualizar o sddkit, `sddkit ci --force` (ou edite a versão à mão).
 - Os arquivos são criados uma vez e são seus: edite à vontade (horário, comandos); `--force` recria.
 
 ---
