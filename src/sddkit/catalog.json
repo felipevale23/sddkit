@@ -206,7 +206,7 @@
           "frontend"
         ]
       },
-      "recommended": true
+      "recommended": false
     },
     {
       "id": "webapp-testing",
