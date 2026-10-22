@@ -1,0 +1,18 @@
+[project]
+name = "sddkit"
+version = "0.5.0"
+description = "Scaffolding agnóstico de Spec-Driven Development (GitHub Spec Kit) com skills e subagents em .agents/"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = []
+
+[project.scripts]
+sddkit = "sddkit.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sddkit"]

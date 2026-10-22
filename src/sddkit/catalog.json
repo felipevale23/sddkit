@@ -1,0 +1,528 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "grill-me",
+      "source": "mattpocock/skills",
+      "skills": [
+        "grill-me",
+        "grilling"
+      ],
+      "phase": "antes do /speckit-specify",
+      "why": "Entrevista implacável que afia a ideia em árvore de decisões antes de virar spec. O /sdd-feature usa automaticamente quando a ideia é vaga.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "grill-with-docs",
+      "source": "mattpocock/skills",
+      "skills": [
+        "grill-with-docs"
+      ],
+      "phase": "antes do /speckit-specify",
+      "why": "Como o grill-me, mas registra ADRs e glossário enquanto pergunta. Bom para domínios regulados e decisões que precisam ficar documentadas.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
+    },
+    {
+      "id": "tdd",
+      "source": "mattpocock/skills",
+      "skills": [
+        "tdd",
+        "codebase-design"
+      ],
+      "phase": "/sdd-build",
+      "why": "Disciplina red-green-refactor; reforça as ondas de teste antes do código.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "diagnosing-bugs",
+      "source": "mattpocock/skills",
+      "skills": [
+        "diagnosing-bugs"
+      ],
+      "phase": "bugs e regressões",
+      "why": "Loop de diagnóstico para bugs difíceis e regressões de performance, fora do fluxo de feature.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "domain-modeling",
+      "source": "mattpocock/skills",
+      "skills": [
+        "domain-modeling"
+      ],
+      "phase": "/speckit-plan (data-model)",
+      "why": "Mantém GLOSSARY.md e ADRs; dá linguagem ubíqua ao data-model.md.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
+    },
+    {
+      "id": "improve-codebase-architecture",
+      "source": "mattpocock/skills",
+      "skills": [
+        "improve-codebase-architecture",
+        "codebase-design",
+        "domain-modeling",
+        "grilling"
+      ],
+      "phase": "projetos existentes",
+      "why": "Revisão de arquitetura em código legado antes de especificar features sobre ele.",
+      "when": {
+        "has_code": true
+      },
+      "recommended": false
+    },
+    {
+      "id": "setup-pre-commit",
+      "source": "mattpocock/skills",
+      "skills": [
+        "setup-pre-commit"
+      ],
+      "phase": "setup",
+      "why": "Husky + lint-staged + typecheck + testes no commit — cada onda do /sdd-build passa pelo gate.",
+      "when": {
+        "stacks": [
+          "node"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "react-best-practices",
+      "source": "vercel-labs/agent-skills",
+      "skills": [
+        "vercel-react-best-practices",
+        "vercel-composition-patterns"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões de performance e composição de componentes React/Next.",
+      "when": {
+        "stacks": [
+          "react",
+          "next"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "react-native",
+      "source": "vercel-labs/agent-skills",
+      "skills": [
+        "vercel-react-native-skills"
+      ],
+      "phase": "/sdd-build",
+      "why": "Boas práticas de React Native / Expo.",
+      "when": {
+        "stacks": [
+          "react-native",
+          "expo"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "web-design-guidelines",
+      "source": "vercel-labs/agent-skills",
+      "skills": [
+        "web-design-guidelines"
+      ],
+      "phase": "/sdd-build + revisão",
+      "why": "Auditoria de UI (acessibilidade, UX) contra guidelines web.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "frontend-design",
+      "source": "anthropics/skills",
+      "skills": [
+        "frontend-design"
+      ],
+      "phase": "/sdd-build",
+      "why": "Direção visual intencional para interfaces, evitando cara de template.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "webapp-testing",
+      "source": "anthropics/skills",
+      "skills": [
+        "webapp-testing"
+      ],
+      "phase": "/sdd-build + converge",
+      "why": "Testes E2E com Playwright para validar as user stories no navegador.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "deploy-to-vercel",
+      "source": "vercel-labs/agent-skills",
+      "skills": [
+        "deploy-to-vercel"
+      ],
+      "phase": "entrega",
+      "why": "Deploy de previews/produção na Vercel.",
+      "when": {
+        "stacks": [
+          "vercel"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "mcp-builder",
+      "source": "anthropics/skills",
+      "skills": [
+        "mcp-builder"
+      ],
+      "phase": "/speckit-plan + /sdd-build",
+      "why": "Guia para construir servidores MCP de qualidade.",
+      "when": {
+        "stacks": [
+          "mcp"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "claude-api",
+      "source": "anthropics/skills",
+      "skills": [
+        "claude-api"
+      ],
+      "phase": "/sdd-build",
+      "why": "Uso correto da Claude API / SDK (tool use, caching, streaming).",
+      "when": {
+        "stacks": [
+          "anthropic-sdk"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "skill-creator",
+      "source": "anthropics/skills",
+      "skills": [
+        "skill-creator"
+      ],
+      "phase": "manutenção",
+      "why": "Criar e testar skills próprias do projeto em .agents/skills.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
+    },
+    {
+      "id": "security-review",
+      "source": "trailofbits/skills",
+      "skills": [
+        "differential-review",
+        "fp-check",
+        "variant-analysis"
+      ],
+      "phase": "convergência (security-reviewer)",
+      "why": "Revisão diferencial de segurança do diff, confirmação de falso positivo e caça a variantes — Trail of Bits.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "semgrep",
+      "source": "trailofbits/skills",
+      "skills": [
+        "semgrep",
+        "sarif-parsing"
+      ],
+      "phase": "convergência (sast-scanner)",
+      "why": "Semgrep com rulesets oficiais + Trail of Bits/0xdea/Decurity, SARIF consolidado. Requer o CLI semgrep.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "supply-chain-risk-auditor",
+      "source": "trailofbits/skills",
+      "skills": [
+        "supply-chain-risk-auditor"
+      ],
+      "phase": "convergência (supply-chain-auditor)",
+      "why": "Risco de dependências: advisories por versão, projetos abandonados, scripts de instalação.",
+      "when": {
+        "stacks": [
+          "node",
+          "python",
+          "go",
+          "rust"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "agentic-actions-auditor",
+      "source": "trailofbits/skills",
+      "skills": [
+        "agentic-actions-auditor"
+      ],
+      "phase": "convergência (actions-auditor)",
+      "why": "Segurança de GitHub Actions, inclusive agentes de IA no CI.",
+      "when": {
+        "stacks": [
+          "ci"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "spec-to-code-compliance",
+      "source": "trailofbits/skills",
+      "skills": [
+        "spec-to-code-compliance"
+      ],
+      "phase": "convergência (sdd-converger)",
+      "why": "Confronta código e spec: requisitos atendidos, contrariados, ausentes e comportamento não especificado.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
+      "id": "property-based-testing",
+      "source": "trailofbits/skills",
+      "skills": [
+        "property-based-testing"
+      ],
+      "phase": "/sdd-build (event-module, qa)",
+      "why": "Guia de testes de propriedade (fast-check/hypothesis) para invariantes de domínio.",
+      "when": {
+        "stacks": [
+          "fast-check",
+          "queue",
+          "pydantic"
+        ]
+      },
+      "recommended": false
+    }
+  ],
+  "roles": [
+    {
+      "id": "ui",
+      "why": "Implementa telas, componentes e estilos com estados completos, a11y WCAG 2.2 AA e design system.",
+      "when": {
+        "stacks": [
+          "frontend",
+          "react-native",
+          "flutter"
+        ]
+      },
+      "recommended": true,
+      "skills": [
+        "frontend-design",
+        "react-best-practices",
+        "web-design-guidelines"
+      ]
+    },
+    {
+      "id": "ui-reviewer",
+      "why": "Revisa a UI de cada história contra os cenários de aceite (screenshots + axe quando possível).",
+      "when": {
+        "stacks": [
+          "frontend",
+          "react-native",
+          "flutter"
+        ]
+      },
+      "recommended": true,
+      "skills": [
+        "web-design-guidelines",
+        "webapp-testing"
+      ]
+    },
+    {
+      "id": "api",
+      "why": "Endpoints e serviços aderentes a contracts/, authz por recurso, idempotência.",
+      "when": {
+        "stacks": [
+          "backend"
+        ]
+      },
+      "recommended": true,
+      "skills": []
+    },
+    {
+      "id": "data",
+      "why": "Schema e migrations reversíveis conforme data-model.md; nada destrutivo sem tarefa explícita.",
+      "when": {
+        "stacks": [
+          "db"
+        ]
+      },
+      "recommended": true,
+      "skills": [
+        "domain-modeling"
+      ]
+    },
+    {
+      "id": "qa",
+      "why": "Executa as seções ### Tests: testes que falham pelo motivo certo antes do código.",
+      "when": {
+        "always": true
+      },
+      "recommended": true,
+      "skills": [
+        "tdd"
+      ]
+    },
+    {
+      "id": "security-reviewer",
+      "why": "Revisão diferencial de segurança/LGPD do diff com confirmação de falso positivo e variantes (skills Trail of Bits).",
+      "when": {
+        "always": true
+      },
+      "recommended": true,
+      "skills": [
+        "security-review"
+      ]
+    },
+    {
+      "id": "devops",
+      "why": "CI/CD, Docker, IaC e env; valida mas nunca aplica em produção.",
+      "when": {
+        "stacks": [
+          "docker",
+          "ci",
+          "iac",
+          "vercel"
+        ]
+      },
+      "recommended": false,
+      "skills": [
+        "setup-pre-commit"
+      ]
+    },
+    {
+      "id": "docs",
+      "why": "README, quickstart, ADRs e changelog verificados contra o código real.",
+      "when": {
+        "always": true
+      },
+      "recommended": false,
+      "skills": [
+        "domain-modeling"
+      ]
+    },
+    {
+      "id": "event-module",
+      "why": "Módulos puros orientados a eventos (sem banco/IO): contrato Zod in/out, determinismo, idempotência, fast-check.",
+      "when": {
+        "stacks": [
+          "queue"
+        ]
+      },
+      "recommended": true,
+      "skills": [
+        "tdd",
+        "property-based-testing"
+      ]
+    },
+    {
+      "id": "queue-worker",
+      "why": "Workers BullMQ: valida job, chama módulo, POST na rota interna com Idempotency-Key, retry/backoff, DLQ, shutdown gracioso.",
+      "when": {
+        "stacks": [
+          "queue"
+        ]
+      },
+      "recommended": true,
+      "skills": []
+    },
+    {
+      "id": "bill-parser",
+      "why": "Parsers Python de faturas de energia por layout de distribuidora: SCEE/Lei 14.300, Decimal, validação cruzada, golden tests com fixtures anonimizadas.",
+      "when": {
+        "stacks": [
+          "pdf-parser"
+        ]
+      },
+      "recommended": true,
+      "skills": []
+    },
+    {
+      "id": "contract-reviewer",
+      "why": "Na convergência, verifica deriva de contrato fila → worker → módulo/parser → rota interna (TS ↔ Python).",
+      "when": {
+        "stacks": [
+          "queue",
+          "polyglot"
+        ]
+      },
+      "recommended": true,
+      "skills": []
+    },
+    {
+      "id": "sast-scanner",
+      "why": "Semgrep nos arquivos alterados, SARIF + triagem de falso positivo; plano de varredura aprovado uma vez e salvo.",
+      "when": {
+        "always": true
+      },
+      "recommended": true,
+      "skills": [
+        "semgrep",
+        "security-review"
+      ]
+    },
+    {
+      "id": "supply-chain-auditor",
+      "why": "Audita dependências novas/alteradas pela feature (advisories, abandono, postinstall, licença).",
+      "when": {
+        "stacks": [
+          "node",
+          "python",
+          "go",
+          "rust"
+        ]
+      },
+      "recommended": true,
+      "skills": [
+        "supply-chain-risk-auditor"
+      ]
+    },
+    {
+      "id": "actions-auditor",
+      "why": "Audita workflows do GitHub Actions alterados (permissões, SHA pinning, pull_request_target, IA no CI).",
+      "when": {
+        "stacks": [
+          "ci"
+        ]
+      },
+      "recommended": true,
+      "skills": [
+        "agentic-actions-auditor"
+      ]
+    }
+  ]
+}
