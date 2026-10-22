@@ -27,6 +27,7 @@ sddkit sync [--agents ...] [--copy]     # regenera AGENTS.md + adaptadores após
 sddkit change new "título" [--feature NNN|none] [--priority High]   # change request CHANGE-NNN (próximo id livre)
 sddkit playbook new "nome"              # guia reutilizável em .agents/specs/playbooks/
 sddkit index                            # regenera .agents/specs/features.md (features, CRs, playbooks)
+sddkit commitlint [--no-install]        # hook commit-msg: Conventional Commits + bloqueio de atribuição de IA
 sddkit doctor                           # instalação, constituição, skills recomendadas e drift entre specs e código
 ```
 
@@ -147,6 +148,7 @@ Três camadas — da que depende do modelo à que não depende:
 | **Revisores** (convergência, em paralelo) | `security-reviewer` — revisão diferencial do diff + `fp-check` + `variant-analysis`, LGPD, authz, rotas internas, PIX/webhooks · `sast-scanner` — Semgrep (oficial + Trail of Bits/0xdea/Decurity) nos arquivos alterados, SARIF, triagem · `supply-chain-auditor` — só se a feature mexe em manifestos/lockfiles · `actions-auditor` — só se mexe em `.github/workflows` | `.agents/agents/`, skills de [trailofbits/skills](https://github.com/trailofbits/skills) (CC-BY-SA 4.0) |
 | **Convergência** | `sdd-converger` usa `spec-to-code-compliance`: acha também comportamento que nenhuma spec pede | núcleo |
 | **Determinística** (não depende do modelo obedecer) | hook `guard_secrets.py` bloqueia escrita de chaves/tokens (AWS, GitHub, Anthropic, OpenAI, Slack, Stripe, Google, chave privada, URL com senha) e CPF/CNPJ com dígito verificador válido · `permissions.deny` de leitura de `.env*`, `*.pem`, `*.key`, chaves SSH | Claude: `PreToolUse` em `.claude/settings.json` · qualquer ferramenta: `python3 .agents/hooks/guard_secrets.py --staged` no pre-commit (husky) |
+| **Commits** (`sddkit commitlint`) | hook `commit-msg` com `.agents/hooks/commit_msg.py`: recusa `Co-authored-by` de agentes de IA (Claude, Copilot, Cursor, Codex, Gemini…), "Generated with Claude Code" e `Claude-Session:`. Em projeto node instala `@commitlint/cli` + `config-conventional` (cria `commitlint.config.mjs` só se não houver config); sem node, o próprio script exige o cabeçalho Conventional Commits. Usa o Husky se existir, senão `.githooks/` com `core.hooksPath`; hook existente é preservado (as linhas do sddkit entram no topo, com `\|\| exit 1`). Par natural da skill `conventional-git`. |
 
 - Semgrep exige aprovação humana do plano de varredura: na 1ª vez o `sast-scanner` devolve `PLANO PENDENTE`, o `/sdd-build` pergunta e grava em `.agents/security/semgrep-plan.json`; depois roda sem perguntar enquanto linguagens e rulesets forem os mesmos. Sem o CLI: `uv tool install semgrep`.
 - Fixtures (LGPD): use CPF/CNPJ com DV **inválido** (ex.: `123.456.789-00`). Falso positivo do guard: comentário `sddkit:allow-secret` na linha; `*.example`/`*.sample` são ignorados.

@@ -617,6 +617,85 @@ def cmd_playbook(args) -> int:
     return 0
 
 
+COMMITLINT_CONFIGS = ("commitlint.config.js", "commitlint.config.mjs", "commitlint.config.cjs", "commitlint.config.ts",
+                      ".commitlintrc", ".commitlintrc.json", ".commitlintrc.yml", ".commitlintrc.yaml", ".commitlintrc.js")
+
+
+def _hooks_dir(root: Path) -> tuple[Path, bool]:
+    """(pasta do commit-msg, versionada?). Husky > core.hooksPath > .githooks (só se .git/hooks não tiver hooks próprios)."""
+    if (root / ".husky").is_dir():
+        return root / ".husky", True
+    cur = subprocess.run(["git", "config", "core.hooksPath"], cwd=root, capture_output=True, text=True).stdout.strip()
+    if cur:
+        return root / cur, not cur.startswith(".git/")
+    own = [h for h in (root / ".git" / "hooks").glob("*") if h.is_file() and not h.name.endswith(".sample")]
+    if own:  # trocar o hooksPath desligaria esses hooks
+        return root / ".git" / "hooks", False
+    run(["git", "config", "core.hooksPath", ".githooks"], root)
+    return root / ".githooks", True
+
+
+def cmd_commitlint(args) -> int:
+    root = Path(args.dir).resolve()
+    if not (root / ".git").exists():
+        say("✗ não é um repositório git.")
+        return 1
+    script = root / ".agents" / "hooks" / "commit_msg.py"
+    script.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(tpl() / "hooks" / "commit_msg.py", script)
+    script.chmod(0o755)
+    pkg = root / "package.json"
+    node = pkg.is_file()
+    if node:
+        data = json.loads(pkg.read_text(encoding="utf-8"))
+        deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
+        need = [d for d in ("@commitlint/cli", "@commitlint/config-conventional") if d not in deps]
+        if need and not args.no_install:
+            if (root / "pnpm-lock.yaml").exists():
+                cmd = ["pnpm", "add", "-D"] + (["-w"] if (root / "pnpm-workspace.yaml").exists() else [])
+            elif (root / "yarn.lock").exists():
+                cmd = ["yarn", "add", "-D"]
+            elif (root / "bun.lockb").exists() or (root / "bun.lock").exists():
+                cmd = ["bun", "add", "-d"]
+            else:
+                cmd = ["npm", "install", "-D"]
+            say(f"• {' '.join(cmd + need)}")
+            if run(cmd + need, root) != 0:
+                say("✗ falhou ao instalar o commitlint.")
+                return 1
+        elif need:
+            say(f"• pulado (--no-install): instale {' '.join(need)} como devDependencies")
+        cfg = next((c for c in COMMITLINT_CONFIGS if (root / c).exists()), None) or ("commitlint" if "commitlint" in data else None)
+        if cfg:
+            say(f"• commitlint: config existente mantida ({cfg})")
+        else:
+            (root / "commitlint.config.mjs").write_text("export default { extends: ['@commitlint/config-conventional'] };\n", encoding="utf-8")
+            say("• commitlint.config.mjs criado (@commitlint/config-conventional)")
+
+    hdir, versioned = _hooks_dir(root)
+    hook = hdir / "commit-msg"
+    text = hook.read_text(encoding="utf-8") if hook.exists() else ("" if hdir.name == ".husky" else "#!/bin/sh\n")
+    add = []
+    if node and "commitlint" not in text:
+        add.append('npx --no -- commitlint --edit "$1"')
+    if "commit_msg.py" not in text:
+        add.append('python3 .agents/hooks/commit_msg.py "$1"' + ("" if node else " --conventional"))
+    if add:
+        # no topo e com `|| exit 1`: sem `sh -e`, o status do hook é o do último comando — a ordem não pode mascarar falhas
+        lines = text.splitlines()
+        head = [lines.pop(0)] if lines and lines[0].startswith("#!") else []
+        block = ["# sddkit: Conventional Commits + sem atribuição de IA"] + [c + " || exit 1" for c in add]
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        hook.write_text("\n".join(head + block + lines) + "\n", encoding="utf-8")
+        hook.chmod(0o755)
+    say(f"• {hook.relative_to(root)}: " + ("atualizado" if add else "já configurado")
+        + ("" if versioned else " (local, não versionado: cada clone roda `sddkit commitlint`)"))
+    if hdir.name == ".githooks":
+        say("  core.hooksPath=.githooks — em outro clone: `git config core.hooksPath .githooks`")
+    say("✓ commits passam por " + ("commitlint + " if node else "Conventional Commits + ") + "bloqueio de atribuição de IA")
+    return 0
+
+
 def cmd_doctor(args) -> int:
     root = Path(args.dir).resolve()
     cfg = load_cfg(root)
@@ -752,6 +831,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("name", nargs="+")
     p.add_argument("--dir", default=".")
     p.set_defaults(fn=cmd_playbook)
+
+    p = sub.add_parser("commitlint", help="hook commit-msg: Conventional Commits (commitlint em projetos node) + bloqueio de atribuição de IA")
+    p.add_argument("dir", nargs="?", default=".")
+    p.add_argument("--no-install", action="store_true", help="não instala @commitlint/* (só cria config e hook)")
+    p.set_defaults(fn=cmd_commitlint)
 
     p = sub.add_parser("doctor", help="verifica a instalação e o drift entre specs e código")
     p.add_argument("dir", nargs="?", default=".")
