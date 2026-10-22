@@ -24,7 +24,10 @@ sddkit memory add "fato" [-t tópico] [--paths "glob,glob"] [-d "descrição"]
 sddkit memory list [-t tópico]
 sddkit memory rm <tópico> [n]
 sddkit sync [--agents ...] [--copy]     # regenera AGENTS.md + adaptadores após editar .agents/
-sddkit doctor                           # checa instalação, constituição e skills recomendadas
+sddkit change new "título" [--feature NNN|none] [--priority High]   # change request CHANGE-NNN (próximo id livre)
+sddkit playbook new "nome"              # guia reutilizável em .agents/specs/playbooks/
+sddkit index                            # regenera .agents/specs/features.md (features, CRs, playbooks)
+sddkit doctor                           # instalação, constituição, skills recomendadas e drift entre specs e código
 ```
 
 ## O que `init` cria
@@ -35,12 +38,19 @@ AGENTS.md                     ← instruções (blocos <!-- sddkit --> gerenciad
     speckit-*/                  geradas pelo Spec Kit (integração generic) — não editar
     sdd-feature/                pipeline: grill → specify → clarify → plan → tasks → análise
     sdd-build/                  ondas paralelas de implementação + convergência (scripts/waves.py)
+    sdd-change/                 mudança no que já existe: Tipo A direto · Tipo B: CR → aprovação → spec → código → drift → CHANGELOG
     grill-me/ grilling/ ...     sugeridas e instaladas via `npx skills -a universal`
   agents/                     ← papéis de subagent em formato neutro
     sdd-researcher.md  sdd-implementer.md  sdd-analyst.md  sdd-converger.md   (núcleo)
     ui.md  ui-reviewer.md  api.md  data.md  qa.md  security-reviewer.md ...  (especialistas)
+  specs/                      ← specs do projeto (criado uma vez; nunca sobrescrito)
+    architecture.md stack.md coding-standards.md design-system.md   docs centrais
+    features.md                 índice gerado (`sddkit index`)
+    features/NNN-slug/          uma pasta por feature (Spec Kit: spec, plan, tasks…)
+    changes/YYYY-MM-DD-slug.md  change requests CHANGE-NNN
+    playbooks/                  guias reutilizáveis, portáveis para outros projetos
   sddkit.json                 ← adaptadores, modo link/cópia, arquivos gerados
-.specify/  specs/             ← motor e artefatos do Spec Kit
+.specify/                    ← motor do Spec Kit
 skills-lock.json              ← hashes das skills de terceiros (do `npx skills`)
 ```
 
@@ -76,6 +86,38 @@ Fatos e convenções que todo agente deve saber, versionados em `.agents/memory/
 | Por área (`--paths`) | ponteiro no `AGENTS.md` | `.claude/rules/sddkit-memory-<tópico>.md` com `paths:` — carrega só ao tocar esses arquivos | leem o arquivo quando o ponteiro manda |
 
 Constituição ≠ memória: a constituição (`/speckit-constitution`) traz **princípios** que viram gate no plano; a memória traz **fatos e armadilhas** ("a fila se chama `bills`", "Energisa mudou o layout em 2024-03"). Prefira `--paths` para manter o `AGENTS.md` abaixo de 200 linhas (o `doctor` avisa).
+
+## Specs, change requests e playbooks
+Tudo que descreve o sistema vive em `.agents/specs/`, versionado junto com o código.
+
+- **Features** (`features/NNN-slug/`): criadas pelo `/sdd-feature`, que passa `SPECIFY_FEATURE_DIRECTORY` e `GIT_BRANCH_NAME` ao Spec Kit (sem isso ele usaria `specs/`). A pasta e a branch têm o mesmo `NNN-slug`.
+- **Change requests** (`changes/YYYY-MM-DD-slug.md`): o `/sdd-change` classifica cada pedido antes de agir.
+  - **Tipo A (local):** bug, ajuste visual, texto, refatoração local. Teste e mudança mínima, sem CR.
+  - **Tipo B (estrutural):** API, contrato, evento, schema, arquitetura ou regra de negócio. Segue CR → aprovação explícita ("aprovado"/"approved") → spec da feature atualizada (com `## Change History`) → tarefas numa fase `CHANGE-NNN` do `tasks.md` da feature (`/sdd-build --phase N`) → drift report no CR → `CHANGELOG.md` com `[CHANGE-NNN]` → `sddkit index`.
+  - Frontmatter: `id`, `title`, `status` (`Proposed | Approved | Rejected | In Progress | Implemented`, datas vão no corpo), `feature` (`NNN` ou `none`), `author`, `createdAt`, `targetVersion`, `priority`. O id vem de `sddkit change new`, nunca à mão.
+- **Playbooks** (`playbooks/`): guias de construção escritos para outro código-base: arquitetura, passo a passo, armadilhas reais e como verificar.
+- **Índice** (`features.md`): gerado entre marcadores. O status de cada feature é calculado pelas tarefas (`Specified → Planned → In Progress → Implemented`), e aparecem os CRs ligados a cada uma. `sync`, `change new` e `playbook new` o atualizam.
+
+### Drift (`sddkit doctor`)
+Além da instalação, o `doctor` confere:
+
+| Checagem | Pega |
+|---|---|
+| Specs só em `.agents/specs/` | `specs/` ou `.specify/specs/` esquecidos |
+| `.specify/feature.json` e bloco SPECKIT do `AGENTS.md` | ponteiro para feature/plano que não existe |
+| Referências a arquivos | caminhos citados no `AGENTS.md`, na constituição e nos docs centrais que não existem (`/x` é estrito; `x/y` vale se algum arquivo versionado terminar nele) |
+| Docs centrais preenchidos | `architecture.md`/`stack.md`/… ainda com `[PREENCHER` |
+| Dependências de arquitetura | framework, ORM, fila ou SDK no manifesto que não aparece em `architecture.md`/`stack.md` |
+| Features | pasta sem `spec.md`; `features.md` desatualizado |
+| Change requests | id duplicado, status fora do enum, sem `feature:` |
+| Claude Code | `.claude/` sem `CLAUDE.md` que importe `@AGENTS.md` |
+
+### Skills de regras do projeto
+Regra que só vale numa área do código e que o agente precisa seguir sempre que mexer nela ("toda query em coleção que cresce sem limite usa cursor e projeção", "debug em produção sempre com `maxTimeMS`") vira **skill do projeto**: `.agents/skills/<nome>/SKILL.md` com uma `description` que diga *quando* ela vale (pasta, tipo de tarefa). O agente carrega a skill sozinho quando a tarefa casa com a descrição. Para criar: `/skill-creator`.
+- Fato curto ("a fila se chama `bills`") → `sddkit memory add`.
+- Fato curto que só vale numa pasta → `sddkit memory add --paths`.
+- Procedimento ou regra com exemplos → skill do projeto.
+- Guia para levar a outro projeto → playbook.
 
 ## Subagents especialistas pré-definidos
 | Papel | Tipo | Modelo | Entra quando | Skills pré-carregadas (se instaladas) |
@@ -130,4 +172,5 @@ Três camadas — da que depende do modelo à que não depende:
 /speckit-constitution TDD obrigatório; LGPD by design; ...
 /sdd-feature Cooperado baixa a fatura do mês --stack NestJS+Postgres --grill
 /sdd-build --mvp
+/sdd-change Fatura passa a aceitar parcelamento   # Tipo B → CR, aprovação, spec, código, CHANGELOG
 ```

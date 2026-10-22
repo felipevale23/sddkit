@@ -26,7 +26,9 @@ Rode quando houver `--grill`, ou quando a descrição for vaga (sem usuário-alv
 - Saída do passo: um resumo de 5–15 linhas (usuários, problema, escopo dentro/fora, critérios de sucesso, decisões tomadas). Esse resumo é a entrada do passo 2, no lugar da descrição original.
 
 ## 2. Specify
-Invoque `/speckit-specify` com a descrição (ou o resumo do grill). Os hooks de git criam a branch `NNN-slug`. Guarde `FEATURE_DIR`.
+1. Escolha o nome curto (2–4 palavras, kebab-case) e o número: `NNN` = maior prefixo em `.agents/specs/features/` + 1 (3 dígitos; `001` se vazio).
+2. Invoque `/speckit-specify` com a descrição (ou o resumo do grill), passando `SPECIFY_FEATURE_DIRECTORY=.agents/specs/features/NNN-slug` e `GIT_BRANCH_NAME=NNN-slug`. Sem eles o Spec Kit cria em `specs/`, fora do padrão do projeto.
+3. Guarde `FEATURE_DIR` e confira que `.specify/feature.json` aponta para ele.
 **Gate humano** (pule com `--auto`): mostre as user stories com prioridades e os critérios de sucesso em ≤ 12 linhas e peça aprovação.
 
 ## 3. Clarify
@@ -46,6 +48,9 @@ Rode `python3 .agents/skills/sdd-build/scripts/waves.py <tasks.md>` e confira o 
 Delegue a `sdd-analyst` com `FEATURE_DIR`.
 - `PRONTO` → relatório.
 - `CORRIGIR ANTES` → corrija os CRITICAL/HIGH nos artefatos (spec → plan → tasks) e rode de novo. Máx. 2 ciclos; persistindo, mostre os itens ao usuário.
+
+## 7. Índice
+Rode `sddkit index` (atualiza `.agents/specs/features.md` com a feature nova).
 
 ## Relatório final (≤ 10 linhas)
 Branch · artefatos · nº de FRs / tarefas / ondas (`python3 .agents/skills/sdd-build/scripts/waves.py <tasks.md> --mvp`) · escopo do MVP · veredito do analyst · próximo passo: `/sdd-build --mvp`.

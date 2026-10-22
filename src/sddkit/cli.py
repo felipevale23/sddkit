@@ -11,7 +11,7 @@ import sys
 from importlib import resources
 from pathlib import Path
 
-from . import __version__, adapters, memory
+from . import __version__, adapters, memory, specs
 from .detect import detect, matches
 from .frontmatter import parse
 
@@ -203,6 +203,19 @@ def copy_templates(root: Path, force: bool) -> list[str]:
     return done
 
 
+def scaffold_specs(root: Path) -> list[str]:
+    """Cria .agents/specs/ (docs centrais + features/changes/playbooks). Nunca sobrescreve: os docs são do projeto."""
+    done = []
+    src = tpl() / "specs"
+    for f in sorted(p for p in src.rglob("*") if p.is_file()):
+        dst = root / specs.SPECS / f.relative_to(src)
+        if not dst.exists():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(f, dst)
+            done.append(str(dst.relative_to(root)))
+    return done
+
+
 def detect_adapters(root: Path) -> list[str]:
     found = []
     if (root / ".claude").exists() or (root / "CLAUDE.md").exists():
@@ -254,6 +267,8 @@ def cmd_init(args) -> int:
         if stale:
             install_roles(root, stale, force=True)
     say(f"• Camada sdd: {len(new)} arquivo(s) em .agents/ " + ("(existentes mantidos)" if not args.force_templates else "(sobrescritos)"))
+    created = scaffold_specs(root)
+    say(f"• Specs: {specs.SPECS}/ " + (f"criado ({len(created)} arquivo(s)) — preencha architecture.md, stack.md…" if created else "já existe — mantido"))
 
     # 3. Adaptadores
     chosen = parse_list(args.agents)
@@ -297,6 +312,7 @@ def cmd_init(args) -> int:
     say("  /speckit-constitution <princípios do projeto>")
     say("  /sdd-feature <descrição da feature> --stack <...>   (use --grill para afiar a ideia antes)")
     say("  /sdd-build --mvp")
+    say("  /sdd-change <o que mudar>   (bug, ajuste ou evolução de algo que já existe)")
     say("  (papéis extras: sddkit role list · sddkit role add <papel> · sddkit role new <nome>)")
     return 0
 
@@ -419,6 +435,8 @@ def install(root: Path, ids: list[str], cfg: dict) -> bool:
 def do_sync(root: Path, cfg: dict) -> None:
     write_agents_md(root)
     say("\n• AGENTS.md atualizado (blocos sddkit)")
+    if specs.write_index(root):
+        say(f"• {specs.SPECS}/features.md atualizado")
     gen, log = adapters.run(root, cfg["adapters"], cfg["mode"], cfg.get("generated", []))
     cfg["generated"] = gen
     save_cfg(root, cfg)
@@ -572,6 +590,33 @@ def cmd_memory(args) -> int:
     return 0
 
 
+def cmd_change(args) -> int:
+    root = Path(args.dir).resolve()
+    f = specs.new_change(root, " ".join(args.title), args.feature, args.priority)
+    meta, _ = parse(f.read_text(encoding="utf-8"))
+    say(f"✓ {meta['id']} → {f.relative_to(root)} (status: Proposed)")
+    specs.write_index(root)
+    return 0
+
+
+def cmd_index(args) -> int:
+    root = Path(args.dir).resolve()
+    p = specs.write_index(root)
+    if not p:
+        say(f"✗ {specs.SPECS}/ não existe — rode `sddkit init`.")
+        return 1
+    say(f"✓ {p.relative_to(root)}")
+    return 0
+
+
+def cmd_playbook(args) -> int:
+    root = Path(args.dir).resolve()
+    f = specs.new_playbook(root, " ".join(args.name))
+    say(f"✓ {f.relative_to(root)}")
+    specs.write_index(root)
+    return 0
+
+
 def cmd_doctor(args) -> int:
     root = Path(args.dir).resolve()
     cfg = load_cfg(root)
@@ -627,6 +672,13 @@ def cmd_doctor(args) -> int:
     rpend = [r["id"] for r in role_suggestions(root, info) if r["recommended"] and not r["installed"]]
     check(not rpend, "papéis recomendados instalados" + (f" (faltam: {', '.join(rpend)})" if rpend else ""), "sddkit role add " + " ".join(rpend))
     check(not pend, "skills recomendadas instaladas" + (f" (faltam: {', '.join(pend)})" if pend else ""), "sddkit add " + " ".join(pend))
+    say("\nSpecs (drift):")
+    for ok, msg, fix, details in specs.drift_checks(root, info):
+        check(ok, msg, fix)
+        for d in details[:8]:
+            say(f"      · {d}")
+        if len(details) > 8:
+            say(f"      · … +{len(details) - 8}")
     say(f"\n{problems} pendência(s).")
     return 0 if problems == 0 else 1
 
@@ -683,7 +735,25 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--copy", action="store_true")
     p.set_defaults(fn=cmd_sync)
 
-    p = sub.add_parser("doctor", help="verifica a instalação")
+    p = sub.add_parser("change", help="change requests em .agents/specs/changes (id CHANGE-NNN sequencial)")
+    p.add_argument("action", choices=["new"])
+    p.add_argument("title", nargs="+")
+    p.add_argument("--feature", default="none", help="NNN ou pasta da feature afetada (padrão: none)")
+    p.add_argument("--priority", default="Medium", choices=["Low", "Medium", "High", "Critical"])
+    p.add_argument("--dir", default=".")
+    p.set_defaults(fn=cmd_change)
+
+    p = sub.add_parser("index", help="regenera .agents/specs/features.md (features, CRs, playbooks)")
+    p.add_argument("dir", nargs="?", default=".")
+    p.set_defaults(fn=cmd_index)
+
+    p = sub.add_parser("playbook", help="guias reutilizáveis em .agents/specs/playbooks")
+    p.add_argument("action", choices=["new"])
+    p.add_argument("name", nargs="+")
+    p.add_argument("--dir", default=".")
+    p.set_defaults(fn=cmd_playbook)
+
+    p = sub.add_parser("doctor", help="verifica a instalação e o drift entre specs e código")
     p.add_argument("dir", nargs="?", default=".")
     p.set_defaults(fn=cmd_doctor)
 

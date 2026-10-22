@@ -79,6 +79,7 @@ def _manifests(root: Path, max_depth: int = 3) -> list[Path]:
 def detect(root: Path) -> dict:
     stacks: set[str] = set()
     evidence: list[str] = []
+    deps_found: set[str] = set()
     py_text = ""
 
     for mf in _manifests(root):
@@ -91,6 +92,7 @@ def detect(root: Path) -> dict:
                 data = {}
             deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
             hits = [d for d in NODE_MAP if d in deps]
+            deps_found.update(hits)
             for dep in hits:
                 stacks |= NODE_MAP[dep]
             if hits or mf.parent == root:
@@ -107,6 +109,7 @@ def detect(root: Path) -> dict:
             continue
         if re.search(r'(^|["\'\s,\[])' + re.escape(dep) + r'([<>=~!\s"\',\]\[]|$)', py_text, re.M):
             stacks |= tags
+            deps_found.add(dep)
             evidence.append(dep)
 
     for f, tag in [("go.mod", "go"), ("Cargo.toml", "rust"), ("pom.xml", "java"),
@@ -143,6 +146,7 @@ def detect(root: Path) -> dict:
         "has_code": n_src >= 5,
         "source_files": n_src if n_src < 50 else "50+",
         "evidence": evidence,
+        "deps": sorted(deps_found),
         "git": (root / ".git").exists(),
     }
 
