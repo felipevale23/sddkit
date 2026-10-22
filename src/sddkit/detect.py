@@ -76,6 +76,51 @@ def _manifests(root: Path, max_depth: int = 3) -> list[Path]:
     return sorted(found)
 
 
+# Stack declarada em .agents/specs/stack.md (o /sdd-stack escreve): vale antes de existir manifesto.
+DECLARED = [
+    (r"next\.?js", {"next", "react", "frontend", "backend"}), (r"react native", {"react-native", "react"}),
+    (r"expo", {"expo", "react-native", "react"}), (r"react", {"react", "frontend"}),
+    (r"vue|nuxt|svelte(kit)?|angular|astro|solid\.?js", {"frontend"}), (r"flutter", {"flutter"}),
+    (r"swift(ui)?|xcode", {"apple"}), (r"tauri|electron", {"desktop"}),
+    (r"express", {"backend", "express"}), (r"fastify|nest\.?js|hono|koa|trpc", {"backend"}),
+    (r"fastapi|flask", {"backend", "python"}), (r"django", {"backend", "db", "python"}),
+    (r"prisma", {"db", "prisma"}), (r"drizzle|typeorm|sequelize|mongoose|sqlalchemy|alembic", {"db"}),
+    (r"postgres(ql)?|mysql|mariadb|mongo(db)?|sqlite|supabase", {"db"}),
+    (r"bullmq|celery|rabbitmq|kafka|pg-boss", {"queue"}),
+    (r"tailwind(\s?css)?", {"tailwind"}), (r"shadcn", {"shadcn"}), (r"mui|material ui", {"mui"}),
+    (r"tanstack[- ]query|react[- ]query", {"tanstack-query"}), (r"tanstack[- ]router", {"tanstack-router"}),
+    (r"zod", {"zod"}), (r"pydantic", {"pydantic"}), (r"fast-check", {"fast-check"}),
+    (r"pdfplumber|pymupdf|pypdf|docling", {"pdf-parser"}),
+    (r"mcp|model context protocol", {"mcp"}), (r"anthropic|claude (api|agent sdk)", {"anthropic-sdk"}),
+    (r"vercel", {"vercel"}), (r"docker", {"docker"}), (r"terraform|opentofu|pulumi", {"iac"}),
+    (r"github actions|gitlab ci", {"ci"}),
+    (r"typescript|node(\.?js)?", {"node"}), (r"python", {"python"}), (r"golang", {"go", "backend"}),
+    (r"rust", {"rust", "backend"}), (r"java|kotlin|spring", {"java", "backend"}),
+    (r"ruby|rails", {"ruby", "backend"}), (r"php|laravel", {"php", "backend"}),
+]
+
+
+def declared(root: Path) -> tuple[set[str], list[str]]:
+    """Stacks citadas em .agents/specs/stack.md, ignorando o template não preenchido e alternativas descartadas."""
+    f = root / ".agents" / "specs" / "stack.md"
+    if not f.is_file():
+        return set(), []
+    text = f.read_text(encoding="utf-8")
+    if "[PREENCHER" in text:
+        return set(), []
+    text = re.sub(r"(?ms)^##\s*decis.*?(?=^##\s|\Z)", "", text.lower())  # seção de decisões cita alternativas
+    text = "\n".join(ln for ln in text.splitlines() if not re.search(r"descartad|rejeitad|alternativ|em vez de|instead of", ln))
+    tags: set[str] = set()
+    hits = []
+    packages = [(re.escape(k), v) for k, v in {**NODE_MAP, **PY_MAP}.items()]  # nomes exatos de pacote (`@prisma/client`)
+    for rx, t in DECLARED + packages:
+        m = re.search(r"(?<![\w@/-])(" + rx + r")(?![\w-])", text)
+        if m:
+            tags |= t
+            hits.append(m.group(1))
+    return tags, hits
+
+
 def detect(root: Path) -> dict:
     stacks: set[str] = set()
     evidence: list[str] = []
@@ -129,6 +174,10 @@ def detect(root: Path) -> dict:
         if (root / f).exists():
             stacks.add(tag)
             evidence.append(f)
+    dtags, dhits = declared(root)
+    if dtags - stacks:
+        evidence.append(f"stack.md ({', '.join(dict.fromkeys(dhits))})")
+        stacks |= dtags
     if "node" in stacks and "python" in stacks:
         stacks.add("polyglot")
     if any(root.glob("*.tf")):

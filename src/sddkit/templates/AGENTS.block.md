@@ -7,7 +7,7 @@ Este repositório segue SDD com GitHub Spec Kit. **Nenhum código de produção 
 ## Fluxo
 | Quando | Comando |
 |---|---|
-| 1× por projeto | `/speckit-constitution <princípios>` |
+| 1× por projeto | `/sdd-stack <o que o projeto é>` (grill da stack → `.agents/specs/stack.md`; depois `sddkit init` de novo) e `/speckit-constitution <princípios>` |
 | Ideia ainda vaga | `/grill-me` (se instalada) — ou `/sdd-feature ... --grill` |
 | Feature nova | `/sdd-feature <descrição> --stack <...>` → grill? → specify → clarify → plan → tasks → análise |
 | Implementar | `/sdd-build --mvp`, depois `/sdd-build` |

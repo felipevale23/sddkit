@@ -229,6 +229,25 @@ def test_suggest_groups_tiers_and_stack_filter():
     assert not any(i.startswith("cck-") and i != "cck-route-tester" for i in py_ids)
 
 
+def test_declared_stack_drives_suggestions_before_any_manifest():
+    root = project()
+    out = sdd(root, *OFFLINE_INIT).stdout
+    assert "/sdd-stack" in out and (root / ".agents/skills/sdd-stack/SKILL.md").exists()
+    assert json.loads(sdd(root, "suggest", "--json").stdout)["project"]["stacks"] == []   # template [PREENCHER ignorado
+    (root / ".agents/specs/stack.md").write_text(
+        "# Stack\n\n## Por componente\n- **Web:** TypeScript, Next.js 15, `tailwindcss`, shadcn/ui, `@tanstack/react-query`\n"
+        "- **API:** Express com `@prisma/client` e PostgreSQL; jobs com `bullmq`\n\n## Infraestrutura\nDocker, GitHub Actions.\n\n"
+        "## Decisões\n- 2026-10-22: Express em vez de Django (equipe é TypeScript).\n")
+    data = json.loads(sdd(root, "suggest", "--json").stdout)
+    stacks = set(data["project"]["stacks"])
+    assert {"next", "react", "frontend", "tailwind", "shadcn", "tanstack-query", "express", "prisma", "db",
+            "queue", "docker", "ci", "node"} <= stacks, stacks
+    assert "python" not in stacks                                       # Django só aparece como alternativa descartada
+    ids = {s["id"] for s in data["skills"]}
+    assert {"cck-prisma", "cck-shadcn", "react-best-practices"} <= ids
+    assert "/sdd-stack" not in sdd(root, *OFFLINE_INIT).stdout          # stack preenchida: não sugere de novo
+
+
 def test_role_preloads_only_installed_skills():
     root = project(NODE_APP)
     sdd(root, *OFFLINE_INIT)

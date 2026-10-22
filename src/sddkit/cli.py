@@ -333,6 +333,9 @@ def cmd_init(args) -> int:
     # 5. Sync (AGENTS.md + adaptadores)
     do_sync(root, cfg)
     say("\n✓ Pronto. Próximos passos no seu agente:")
+    stack_md = root / specs.SPECS / "stack.md"
+    if stack_md.exists() and specs.PLACEHOLDER in stack_md.read_text(encoding="utf-8"):
+        say("  /sdd-stack <o que o projeto é>   (grill da stack → stack.md; depois rode `sddkit init` de novo)")
     say("  /speckit-constitution <princípios do projeto>")
     say("  /sdd-feature <descrição da feature> --stack <...>   (use --grill para afiar a ideia antes)")
     say("  /sdd-build --mvp")

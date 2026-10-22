@@ -95,11 +95,11 @@ sddkit init
 O `init` faz quatro perguntas (Enter aceita o padrão; `-y` pula todas):
 
 1. **Adaptadores** — para quais ferramentas gerar arquivos. Usa Claude Code? Responda `claude`. Só Codex/Cursor/Copilot? `none` basta, eles leem `.agents/` sozinhos.
-2. **Stack detectada** — ele olha `package.json`, `pyproject.toml` etc. e mostra o que achou. Projeto vazio = nada detectado, tudo bem.
+2. **Stack detectada** — ele olha `package.json`, `pyproject.toml` etc. e a stack declarada em `.agents/specs/stack.md`. Projeto vazio = nada detectado, tudo bem (o passo 3 resolve).
 3. **Subagents especialistas** — os ★ são recomendados para a sua stack. Enter instala os recomendados.
 4. **Skills** — idem. As skills vêm de repositórios públicos; as **oficiais** (Anthropic, Vercel, Cloudflare, Trail of Bits) aparecem primeiro, as de **comunidade** com ⚠ para você revisar.
 
-> 💡 Projeto vazio? Escreva o `package.json`/`pyproject.toml` antes do `init`, ou rode `sddkit init` de novo depois: ele detecta a stack e sugere o que faltar, sem apagar nada.
+> 💡 Projeto vazio e stack ainda não decidida? Tudo bem: o passo 3 resolve isso com uma entrevista, e o `init` de novo instala o que combina com a stack escolhida.
 
 ### Passo 2 — Ver o que apareceu
 
@@ -124,7 +124,42 @@ faturas/
 
 Faça o primeiro commit: `git add -A && git commit -m "chore: sddkit init"`.
 
-### Passo 3 — Escrever as regras da casa
+### Passo 3 — Definir a stack (grill)
+
+Projeto novo, sem `package.json` nem código? O `init` não tem como adivinhar a stack. Abra o agente e deixe ele entrevistar você:
+
+```text
+/sdd-stack API e painel web para uma cooperativa emitir e cobrar faturas de energia
+```
+
+A entrevista vem em **rodadas**. Cada pergunta traz uma **resposta recomendada**, e responder "sim" aceita a recomendação:
+
+```
+❓ Q1 — Linguagem: TypeScript no projeto todo (front e back), ou Python no back?
+➡️ TypeScript/Node 22 em tudo: uma linguagem só, contratos compartilhados entre front e back.
+
+❓ Q2 — Banco: PostgreSQL, MySQL ou MongoDB?
+➡️ PostgreSQL: dados de faturas são relacionais e precisam de transação.
+```
+
+Ela segue uma árvore de decisões: produto e escala → equipe → forma (monólito, monorepo, serviços) → linguagem → frontend → mobile/desktop → backend e contratos → dados → filas e tempo real → autenticação → integrações → hospedagem → qualidade e CI. Ramos que não se aplicam são pulados. O que já existe no repositório (manifestos, código, constituição) entra como fato, não como pergunta. A preferência é por tecnologia **madura e conhecida pela equipe**, com o mínimo de peças.
+
+No fim aparece um resumo (camada · escolha · por quê · alternativa descartada). Só depois do seu "sim" ele grava:
+- `.agents/specs/stack.md`: cada camada com versão e bibliotecas pelo nome do pacote, mais as decisões e o porquê;
+- a visão geral de `.agents/specs/architecture.md`;
+- uma sugestão de texto para a constituição, se surgiram regras inegociáveis.
+
+Então volte ao terminal:
+
+```bash
+sddkit init     # agora lê a stack declarada em stack.md e oferece os papéis e skills dela
+```
+
+O `init` não apaga nada: só acrescenta o que faltava (ex.: `cck-prisma`, `react-best-practices`, o papel `ui`). Alternativas **descartadas** citadas no `stack.md` são ignoradas: escrever "Express em vez de Django" não traz skills de Django.
+
+> Projeto que já tem código? A stack é detectada pelos manifestos. Use `/sdd-stack --revisar` quando for trocar uma peça grande (ex.: de MongoDB para PostgreSQL).
+
+### Passo 4 — Escrever as regras da casa
 
 Abra o seu agente na pasta do projeto e rode:
 
@@ -132,11 +167,11 @@ Abra o seu agente na pasta do projeto e rode:
 /speckit-constitution TDD obrigatório; LGPD by design: CPF nunca em log; APIs REST versionadas em /v1; PostgreSQL como única fonte de verdade
 ```
 
-Ele escreve `.specify/memory/constitution.md`. Depois, preencha (você ou o agente) `.agents/specs/architecture.md` e `stack.md`: eles vêm com `[PREENCHER` e o `sddkit doctor` avisa enquanto estiverem assim.
+Ele escreve `.specify/memory/constitution.md`. Use as restrições que o `/sdd-stack` sugeriu. O resto de `architecture.md` vai sendo preenchido conforme as features nascem; o `sddkit doctor` avisa enquanto algum doc central tiver `[PREENCHER`.
 
 > 🧭 Se o agente não aceitar `/comando`, diga: "leia e siga `.agents/skills/speckit-constitution/SKILL.md`". Vale para todos os comandos deste guia.
 
-### Passo 4 — Especificar a primeira feature
+### Passo 5 — Especificar a primeira feature
 
 ```text
 /sdd-feature Cooperado baixa a fatura do mês em PDF --stack "Node 22, Express, Prisma, PostgreSQL" --grill
@@ -157,7 +192,7 @@ O que acontece, na ordem:
 
 > 💡 Sem `--grill`, ele pergunta só se a ideia estiver vaga. `--auto` pula o gate de aprovação da spec (use com cuidado).
 
-### Passo 5 — Implementar
+### Passo 6 — Implementar
 
 ```text
 /sdd-build --mvp
@@ -180,7 +215,7 @@ Teste o MVP. Gostou? **Aprove** (2º gate) e rode o resto:
 
 > 💡 `--phase 3` roda só uma fase; `--max-parallel 2` limita o paralelismo; `--no-commit` deixa os commits com você.
 
-### Passo 6 — Mudar o que já existe
+### Passo 7 — Mudar o que já existe
 
 Dias depois, chegam pedidos. Para **qualquer mudança** em algo que existe:
 
@@ -205,7 +240,7 @@ O CR fica em `.agents/specs/changes/2026-10-22-parcelamento-de-faturas.md`. A sp
 > Na dúvida entre A e B, ele escolhe **B**: revisar à toa custa pouco; pular a revisão de uma mudança estrutural custa caro.
 > Capacidade **nova** inteira (novas histórias) não é change: é `/sdd-feature`.
 
-### Passo 7 — Conferir a saúde do projeto
+### Passo 8 — Conferir a saúde do projeto
 
 ```bash
 sddkit doctor
@@ -213,7 +248,7 @@ sddkit doctor
 
 Mostra ✓/✗ para instalação, constituição, skills recomendadas e **drift**: specs que mentem sobre o código, links quebrados, CRs com id repetido, dependências que a arquitetura não menciona… Cada ✗ vem com a correção sugerida. Detalhes na [seção 11](#11-o-doctor-saúde-e-drift).
 
-### Passo 8 — Caçar bugs de tempos em tempos
+### Passo 9 — Caçar bugs de tempos em tempos
 
 ```text
 /sdd-audit
@@ -229,7 +264,7 @@ Diferente do `/sdd-build`, que olha só a feature em curso, a auditoria olha **o
 
 `--quick` roda só a parte 1, rápido e sem subagents. Para rodar sozinho toda semana, veja `sddkit ci --audit` na [seção 11](#11-o-doctor-saúde-e-drift).
 
-🎉 Pronto: esse é o ciclo inteiro. Daqui em diante é repetir os passos 4–8.
+🎉 Pronto: esse é o ciclo inteiro. Daqui em diante é repetir os passos 5–9.
 
 ---
 
@@ -256,6 +291,7 @@ sddkit init                    # detecta a stack pelo código e sugere papéis/s
 
 | Eu quero… | Faça |
 |---|---|
+| definir a stack de um projeto novo | `/sdd-stack <o que o projeto é>`, depois `sddkit init` |
 | afiar uma ideia ainda vaga | `/grill-me` ou `/sdd-feature … --grill` |
 | criar uma feature | `/sdd-feature <descrição> --stack <…>` |
 | implementar a feature atual | `/sdd-build --mvp`, depois `/sdd-build` |
@@ -567,6 +603,7 @@ sddkit ci [--audit] [--force]                  # workflows do GitHub: checagem a
 ### No agente
 | Comando | Para | Opções |
 |---|---|---|
+| `/sdd-stack <o que o projeto é>` | entrevista (grill) para decidir a stack → `stack.md` | `--revisar` |
 | `/speckit-constitution <princípios>` | criar/atualizar a constituição | — |
 | `/sdd-feature <descrição>` | da ideia ao `tasks.md` revisado | `--stack "…"` · `--grill` / `--no-grill` · `--auto` |
 | `/sdd-build` | implementar em ondas com especialistas e revisores | `--mvp` · `--phase N` · `--max-parallel K` · `--no-commit` |
