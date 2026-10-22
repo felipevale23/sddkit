@@ -176,6 +176,21 @@
       "recommended": true
     },
     {
+      "id": "impeccable",
+      "source": "pbakaus/impeccable",
+      "skills": [
+        "impeccable"
+      ],
+      "phase": "/sdd-build (UI) e revisão de UI",
+      "why": "Linguagem de design para UI: hierarquia, tipografia, cor, movimento, acessibilidade, responsivo e estados de borda; também critica, audita e documenta o design system (DESIGN.md, tokens).",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": true
+    },
+    {
       "id": "webapp-testing",
       "source": "anthropics/skills",
       "skills": [
