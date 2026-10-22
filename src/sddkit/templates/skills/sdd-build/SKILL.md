@@ -41,7 +41,7 @@ O `waves.py` devolve, por tarefa, `agent` (papel que executa) e `routed_by` (`ta
    - `BLOQUEADA` por divergência spec/plano → **pare tudo** e leve ao usuário. Nunca resolva contrariando a spec em silêncio.
    - Em onda paralela, tarefas OK ficam; só as falhas são refeitas.
 5. **Marque** `- [X]` em tasks.md para cada tarefa OK (só você edita tasks.md).
-6. **Commit** (salvo `--no-commit`): `git add -A && git commit -m "<NNN> wave <n>: T0xx, T0yy — <resumo>"`.
+6. **Commit** (salvo `--no-commit`) em Conventional Commits, para passar no commitlint/`commit-msg`: `git add -A && git commit -m "<tipo>(<NNN>): onda <n> — T0xx, T0yy <resumo>"`, com `tipo` = `test` em onda de testes, `feat` em implementação, `fix` em correções de revisão; cabeçalho em minúsculas, ≤ 100 caracteres, sem ponto final.
 7. **Fim de história** (última onda de uma fase `[USn]`): para cada revisor em `reviews` com `at: story` e `USn` em `stories`, dispare-o (em paralelo) com `FEATURE_DIR`, `STORY` e os `files` dele.
    - `APROVADO` → siga.
    - `AJUSTES` → anexe as tarefas CRITICAL/HIGH devolvidas numa fase `## Review fixes (USn)` logo após a fase da história (IDs livres, mantendo `[@papel]`), recalcule as ondas e execute-as antes da próxima história. MEDIUM/LOW ficam no relatório.

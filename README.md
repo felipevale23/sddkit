@@ -1,190 +1,538 @@
 # sddkit
 
-CLI que monta **Spec-Driven Development** (GitHub Spec Kit) num repositório de forma **agnóstica de agente**: tudo vive em `AGENTS.md` + `.agents/`, e adaptadores finos projetam isso para as ferramentas que ainda não leem esse layout.
+**sddkit prepara um repositório para você construir software com agentes de IA (Claude Code, Codex, Cursor, Copilot, OpenCode, Gemini…) seguindo _Spec-Driven Development_**: primeiro se escreve o que o sistema deve fazer, o agente planeja e quebra em tarefas, e só então o código é escrito — por subagents especialistas, com testes antes, revisores no fim e tudo registrado em arquivos versionados.
 
-## Instalação
-```bash
-uv tool install specify-cli          # motor do Spec Kit
-uv tool install ./sddkit             # ou: uvx --from git+https://github.com/<org>/sddkit sddkit init
-```
-Requer Python ≥ 3.10 (só stdlib) e, para instalar skills, Node.js ≥ 22.20 (`npx skills`).
+Ele não substitui o seu agente: ele **arruma a casa** para que qualquer agente trabalhe do mesmo jeito, com as mesmas regras, no mesmo lugar.
 
-## Comandos
-```bash
-sddkit init [dir] [--agents claude,opencode,gemini|all|none] [--roles recommended|all|none|ui,api] [--skills recommended|all|none|1,4,grill-me] [-y] [--copy]
-sddkit suggest [--json]                 # detecta a stack e sugere skills
-sddkit add grill-me tdd                 # instala do catálogo
-sddkit add owner/repo@skill             # qualquer skill do ecossistema skills.sh
-sddkit role list                        # subagents especialistas do catálogo
-sddkit role add ui ui-reviewer          # instala o papel + skills que ele usa (se casam com a stack)
-sddkit role new pix-integrator          # esqueleto de papel próprio
-sddkit role remove docs
-sddkit role update                      # reaplica os templates do catálogo aos papéis instalados
-sddkit memory add "fato" [-t tópico] [--paths "glob,glob"] [-d "descrição"]
-sddkit memory list [-t tópico]
-sddkit memory rm <tópico> [n]
-sddkit sync [--agents ...] [--copy]     # regenera AGENTS.md + adaptadores após editar .agents/
-sddkit change new "título" [--feature NNN|none] [--priority High]   # change request CHANGE-NNN (próximo id livre)
-sddkit playbook new "nome"              # guia reutilizável em .agents/specs/playbooks/
-sddkit index                            # regenera .agents/specs/features.md (features, CRs, playbooks)
-sddkit commitlint [--no-install]        # hook commit-msg: Conventional Commits + bloqueio de atribuição de IA
-sddkit doctor                           # instalação, constituição, skills recomendadas e drift entre specs e código
-```
+> **Em uma frase:** `sddkit init` uma vez; depois, no agente, `/sdd-feature` para criar, `/sdd-build` para implementar e `/sdd-change` para mudar.
 
-## O que `init` cria
+---
+
+## Sumário
+1. [Os conceitos em 5 minutos](#1-os-conceitos-em-5-minutos)
+2. [Instalação](#2-instalação)
+3. [Tutorial: seu primeiro projeto, passo a passo](#3-tutorial-seu-primeiro-projeto-passo-a-passo)
+4. [Usando num projeto que já existe](#4-usando-num-projeto-que-já-existe)
+5. [Receitas do dia a dia](#5-receitas-do-dia-a-dia)
+6. [Onde fica cada coisa](#6-onde-fica-cada-coisa)
+7. [Subagents especialistas](#7-subagents-especialistas)
+8. [Skills: o catálogo](#8-skills-o-catálogo)
+9. [Memória, skills de projeto e playbooks](#9-memória-skills-de-projeto-e-playbooks)
+10. [Segurança e commits](#10-segurança-e-commits)
+11. [O `doctor`: saúde e drift](#11-o-doctor-saúde-e-drift)
+12. [Referência de comandos](#12-referência-de-comandos)
+13. [Perguntas frequentes](#13-perguntas-frequentes)
+14. [Desenvolvendo o sddkit](#14-desenvolvendo-o-sddkit)
+
+---
+
+## 1. Os conceitos em 5 minutos
+
+### Spec-Driven Development (SDD)
+Em vez de pedir "faz uma tela de login" e torcer, você segue uma linha de montagem:
+
 ```
-AGENTS.md                     ← instruções (blocos <!-- sddkit --> gerenciados; o resto é seu)
-.agents/
-  skills/                     ← fonte única de skills (padrão Agent Skills)
-    speckit-*/                  geradas pelo Spec Kit (integração generic) — não editar
-    sdd-feature/                pipeline: grill → specify → clarify → plan → tasks → análise
-    sdd-build/                  ondas paralelas de implementação + convergência (scripts/waves.py)
-    sdd-change/                 mudança no que já existe: Tipo A direto · Tipo B: CR → aprovação → spec → código → drift → CHANGELOG
-    grill-me/ grilling/ ...     sugeridas e instaladas via `npx skills -a universal`
-  agents/                     ← papéis de subagent em formato neutro
-    sdd-researcher.md  sdd-implementer.md  sdd-analyst.md  sdd-converger.md   (núcleo)
-    ui.md  ui-reviewer.md  api.md  data.md  qa.md  security-reviewer.md ...  (especialistas)
-  specs/                      ← specs do projeto (criado uma vez; nunca sobrescrito)
-    architecture.md stack.md coding-standards.md design-system.md   docs centrais
-    features.md                 índice gerado (`sddkit index`)
-    features/NNN-slug/          uma pasta por feature (Spec Kit: spec, plan, tasks…)
-    changes/YYYY-MM-DD-slug.md  change requests CHANGE-NNN
-    playbooks/                  guias reutilizáveis, portáveis para outros projetos
-  sddkit.json                 ← adaptadores, modo link/cópia, arquivos gerados
-.specify/                    ← motor do Spec Kit
-skills-lock.json              ← hashes das skills de terceiros (do `npx skills`)
+ideia → spec (o quê e por quê) → plano (como) → tarefas → código (com testes antes) → verificação
 ```
 
-### Adaptadores
-| Ferramenta | Lê nativamente | O que o adaptador gera |
+Cada etapa gera um arquivo. O código **deriva** da spec: se o código e a spec divergem, corrige-se a spec primeiro, nunca o contrário em silêncio. Quem implementa essa linha de montagem é o **[GitHub Spec Kit](https://github.com/github/spec-kit)**; o sddkit instala o Spec Kit e acrescenta o que falta para o dia a dia.
+
+### As peças
+
+| Peça | O que é | Analogia |
 |---|---|---|
-| Codex, Cursor, Copilot, Amp, Zed, Kilo, Antigravity, Droid | AGENTS.md + `.agents/skills` | nada; subagents caem no fallback do AGENTS.md (papel executado inline) |
-| Claude Code (`claude`) | — | `.claude/skills` → symlink para `.agents/skills`; `.claude/agents/*.md` traduzidos; `CLAUDE.md` com `@AGENTS.md`; permissões em `.claude/settings.json` |
-| OpenCode (`opencode`) | AGENTS.md + `.agents/skills` | `.opencode/agents/*.md` (`mode: subagent`, `permission`) |
-| Gemini CLI (`gemini`) | `.agents/skills` | `.gemini/settings.json` com `context.fileName: ["AGENTS.md", ...]` |
+| **Constituição** | Princípios inegociáveis do projeto ("TDD obrigatório", "LGPD by design"). Todo plano é conferido contra ela. | As regras da casa |
+| **Spec** | O que uma feature faz: histórias de usuário, requisitos (FR-001…), critérios de sucesso. Sem tecnologia. | O pedido do cliente |
+| **Plano** | Como construir: stack, arquitetura, modelo de dados, contratos de API. | A planta da obra |
+| **Tarefas** (`tasks.md`) | Lista ordenada de passos pequenos, cada um com arquivo e teste. | O cronograma |
+| **Skill** | Um manual que o agente lê quando a tarefa pede (ex.: "como escrever testes", "padrões de React"). Pasta com `SKILL.md`. | Um livro de receitas |
+| **Subagent (papel)** | Um agente especializado com contexto próprio (`ui`, `api`, `qa`, `security-reviewer`…). O agente principal delega a ele. | Um especialista da equipe |
+| **Orquestrador** | O agente com quem você conversa. Coordena, não escreve código de produção no `/sdd-build`. | O mestre de obras |
+| **Change request (CR)** | Pedido formal para mudar algo que já existe, com aprovação antes do código. | Um aditivo de contrato |
+| **`AGENTS.md`** | O arquivo de instruções que todo agente lê ao abrir o projeto. | O manual de boas-vindas |
 
-Arquivos dos adaptadores são **gerados**: edite `.agents/` e rode `sddkit sync`. O que o usuário já tinha (skills próprias em `.claude/skills/`, conteúdo de `CLAUDE.md`/`AGENTS.md`, chaves de settings) é preservado.
+### Agnóstico de agente
+Tudo fica em `AGENTS.md` e na pasta `.agents/`, que Codex, Cursor, Copilot, Amp, Zed e outros já leem sozinhos. Para quem não lê esse formato (Claude Code, OpenCode, Gemini CLI), o sddkit gera **adaptadores**: arquivos derivados, nunca editados à mão. Você troca de ferramenta sem refazer nada.
 
-### Formato neutro de papel (`.agents/agents/*.md`)
+---
+
+## 2. Instalação
+
+### Pré-requisitos
+
+| Ferramenta | Para quê | Como conferir |
+|---|---|---|
+| **git** | o projeto precisa ser um repositório | `git --version` |
+| **Python ≥ 3.10** | roda o sddkit (só biblioteca padrão) | `python3 --version` |
+| **uv** | instala o sddkit e o Spec Kit | `uv --version` · [instalar](https://docs.astral.sh/uv/) |
+| **Node.js ≥ 22.20** | instala skills (`npx skills`) | `node --version` |
+
+### Instalar
+
+```bash
+uv tool install specify-cli                                      # o Spec Kit
+uv tool install git+https://github.com/felipevale23/sddkit       # o sddkit
+```
+
+Trabalhando no código do sddkit? `uv tool install --editable ./sddkit`.
+
+Confira: `sddkit --version`.
+
+---
+
+## 3. Tutorial: seu primeiro projeto, passo a passo
+
+Vamos montar um projeto do zero e entregar uma feature. Exemplo: uma API de faturas para uma cooperativa.
+
+### Passo 1 — Preparar o repositório
+
+```bash
+mkdir faturas && cd faturas
+git init
+sddkit init
+```
+
+O `init` faz quatro perguntas (Enter aceita o padrão; `-y` pula todas):
+
+1. **Adaptadores** — para quais ferramentas gerar arquivos. Usa Claude Code? Responda `claude`. Só Codex/Cursor/Copilot? `none` basta, eles leem `.agents/` sozinhos.
+2. **Stack detectada** — ele olha `package.json`, `pyproject.toml` etc. e mostra o que achou. Projeto vazio = nada detectado, tudo bem.
+3. **Subagents especialistas** — os ★ são recomendados para a sua stack. Enter instala os recomendados.
+4. **Skills** — idem. As skills vêm de repositórios públicos; as **oficiais** (Anthropic, Vercel, Cloudflare, Trail of Bits) aparecem primeiro, as de **comunidade** com ⚠ para você revisar.
+
+> 💡 Projeto vazio? Escreva o `package.json`/`pyproject.toml` antes do `init`, ou rode `sddkit init` de novo depois: ele detecta a stack e sugere o que faltar, sem apagar nada.
+
+### Passo 2 — Ver o que apareceu
+
+```
+faturas/
+├── AGENTS.md                 ← instruções que todo agente lê (o sddkit cuida dos blocos dele; o resto é seu)
+├── CLAUDE.md                 ← só se escolheu claude: uma linha "@AGENTS.md"
+├── .agents/
+│   ├── skills/               ← skills: speckit-* (Spec Kit), sdd-* (sddkit), e as que você escolheu
+│   ├── agents/               ← os subagents (papéis)
+│   ├── specs/                ← TUDO que descreve o sistema (vamos usar muito)
+│   │   ├── architecture.md  stack.md  coding-standards.md  design-system.md
+│   │   ├── features.md       ← índice gerado automaticamente
+│   │   ├── features/         ← uma pasta por feature
+│   │   ├── changes/          ← change requests
+│   │   └── playbooks/        ← guias reutilizáveis
+│   └── sddkit.json           ← configuração do sddkit
+├── .specify/                 ← o motor do Spec Kit (não mexa; só a constituição é sua)
+└── .claude/                  ← gerado para o Claude Code (não edite à mão)
+```
+
+Faça o primeiro commit: `git add -A && git commit -m "chore: sddkit init"`.
+
+### Passo 3 — Escrever as regras da casa
+
+Abra o seu agente na pasta do projeto e rode:
+
+```text
+/speckit-constitution TDD obrigatório; LGPD by design: CPF nunca em log; APIs REST versionadas em /v1; PostgreSQL como única fonte de verdade
+```
+
+Ele escreve `.specify/memory/constitution.md`. Depois, preencha (você ou o agente) `.agents/specs/architecture.md` e `stack.md`: eles vêm com `[PREENCHER` e o `sddkit doctor` avisa enquanto estiverem assim.
+
+> 🧭 Se o agente não aceitar `/comando`, diga: "leia e siga `.agents/skills/speckit-constitution/SKILL.md`". Vale para todos os comandos deste guia.
+
+### Passo 4 — Especificar a primeira feature
+
+```text
+/sdd-feature Cooperado baixa a fatura do mês em PDF --stack "Node 22, Express, Prisma, PostgreSQL" --grill
+```
+
+O que acontece, na ordem:
+
+| Fase | O que o agente faz | O que você faz |
+|---|---|---|
+| **Grill** (`--grill`) | Faz perguntas até a ideia ficar clara: quem usa, o que entra e o que fica de fora. | Responde. |
+| **Specify** | Cria `.agents/specs/features/001-baixar-fatura/spec.md` e a branch `001-baixar-fatura`. | **Aprova** as histórias e critérios mostrados (1º gate). |
+| **Clarify** | Se sobrou ambiguidade (`[NEEDS CLARIFICATION]`), pergunta. | Responde. |
+| **Plan** | Escreve `plan.md`, `research.md`, `data-model.md`, `contracts/`. Dúvidas técnicas vão para subagents `sdd-researcher` em paralelo. | — |
+| **Tasks** | Gera `tasks.md`: testes antes da implementação, um arquivo por tarefa. | — |
+| **Análise** | O subagent `sdd-analyst` confere spec ↔ plano ↔ tarefas ↔ constituição. | Lê o resumo. |
+
+**Nada de código foi escrito ainda.** Revise os arquivos em `.agents/specs/features/001-baixar-fatura/`: esse é o momento barato de mudar de ideia.
+
+> 💡 Sem `--grill`, ele pergunta só se a ideia estiver vaga. `--auto` pula o gate de aprovação da spec (use com cuidado).
+
+### Passo 5 — Implementar
+
+```text
+/sdd-build --mvp
+```
+
+O `--mvp` constrói só a história mais importante (P1). O orquestrador:
+
+1. Divide as tarefas em **ondas**: tarefas marcadas `[P]` e sem arquivo em comum rodam **em paralelo**.
+2. Manda cada tarefa ao **especialista** certo: arquivo `*.test.ts` vai para `qa`, `routes/` vai para `api`, `prisma/` vai para `data`… (detalhes na [seção 7](#7-subagents-especialistas)).
+3. Na onda de testes, confere que os testes **falham** pelo motivo certo; na de implementação, que **passam**.
+4. Faz um commit por onda (`test(001): onda 1 — T004, T005 …`).
+5. No fim da história, chama os **revisores** (ex.: `ui-reviewer` com screenshots). Problemas viram tarefas e são corrigidos antes de seguir.
+6. Na **convergência**, o `sdd-converger` confere cada requisito contra o código real, os revisores de segurança olham o diff e a checagem de conformidade spec × código roda requisito por requisito.
+
+Teste o MVP. Gostou? **Aprove** (2º gate) e rode o resto:
+
+```text
+/sdd-build
+```
+
+> 💡 `--phase 3` roda só uma fase; `--max-parallel 2` limita o paralelismo; `--no-commit` deixa os commits com você.
+
+### Passo 6 — Mudar o que já existe
+
+Dias depois, chegam pedidos. Para **qualquer mudança** em algo que existe:
+
+```text
+/sdd-change O PDF da fatura está saindo sem o logo
+/sdd-change Fatura passa a aceitar parcelamento em até 3x --feature 001
+```
+
+O agente **classifica** antes de agir:
+
+- **Tipo A — local** (o logo): bug, ajuste visual, texto, refatoração local. Não muda requisito, API, contrato, schema nem arquitetura. Ele escreve um teste que falha, corrige e pronto. Sem burocracia.
+- **Tipo B — estrutural** (parcelamento): muda regra de negócio, API, schema… Aí o fluxo é:
+
+```
+CR criado (CHANGE-001)  →  você aprova ("aprovado")  →  spec da feature atualizada
+   →  tarefas numa fase nova do tasks.md  →  /sdd-build daquela fase
+   →  drift report no CR  →  CHANGELOG.md  →  índice atualizado
+```
+
+O CR fica em `.agents/specs/changes/2026-10-22-parcelamento-de-faturas.md`. A spec ganha uma linha em `## Change History` apontando para ele: daqui a um ano, qualquer um (gente ou agente) entende por que a regra mudou.
+
+> Na dúvida entre A e B, ele escolhe **B**: revisar à toa custa pouco; pular a revisão de uma mudança estrutural custa caro.
+> Capacidade **nova** inteira (novas histórias) não é change: é `/sdd-feature`.
+
+### Passo 7 — Conferir a saúde do projeto
+
+```bash
+sddkit doctor
+```
+
+Mostra ✓/✗ para instalação, constituição, skills recomendadas e **drift**: specs que mentem sobre o código, links quebrados, CRs com id repetido, dependências que a arquitetura não menciona… Cada ✗ vem com a correção sugerida. Detalhes na [seção 11](#11-o-doctor-saúde-e-drift).
+
+🎉 Pronto: esse é o ciclo inteiro. Daqui em diante é repetir os passos 4–7.
+
+---
+
+## 4. Usando num projeto que já existe
+
+### Projeto sem SDD
+```bash
+git checkout -b chore/sddkit
+sddkit init                    # detecta a stack pelo código e sugere papéis/skills
+```
+- O texto que você já tinha no `AGENTS.md` e no `CLAUDE.md` é **preservado**; o sddkit só acrescenta os blocos dele, entre marcadores `<!-- sddkit:… -->`.
+- Preencha `architecture.md` e `stack.md` descrevendo o que **já existe**. Com código existente, a skill `improve-codebase-architecture` (sugerida) ajuda a mapear.
+- A partir daí: features novas com `/sdd-feature`, mudanças com `/sdd-change`.
+
+### Projeto que já usa Spec Kit
+- O `init` **não reinstala** o Spec Kit se `.specify/` existe: mantém sua constituição e templates.
+- Specs em `specs/NNN-…` (o padrão do Spec Kit)? Mova as pastas para `.agents/specs/features/` (mantendo os nomes `NNN-slug`); o `doctor` aponta as que ficaram para trás.
+- Rode `sddkit doctor` e trate os ✗ em ordem. Itens mecânicos (status de CR fora do padrão, índice desatualizado) são rápidos; itens de julgamento (a que feature pertence cada CR, o que a arquitetura deveria dizer) são seus.
+- `sddkit index` gera o `features.md`. Se você tinha uma tabela escrita à mão, apague-a: o índice gerado fica entre marcadores e se mantém sozinho.
+
+---
+
+## 5. Receitas do dia a dia
+
+| Eu quero… | Faça |
+|---|---|
+| afiar uma ideia ainda vaga | `/grill-me` ou `/sdd-feature … --grill` |
+| criar uma feature | `/sdd-feature <descrição> --stack <…>` |
+| implementar a feature atual | `/sdd-build --mvp`, depois `/sdd-build` |
+| corrigir um bug ou ajustar algo | `/sdd-change <o que mudar>` |
+| mudar uma regra de negócio ou API | `/sdd-change <…> --feature NNN` (vira CR com aprovação) |
+| criar um CR à mão | `sddkit change new "título" --feature 001` |
+| ver o estado de features e CRs | abrir `.agents/specs/features.md` (ou `sddkit index` para atualizar) |
+| ensinar um fato ao agente | `sddkit memory add "a fila se chama bills"` |
+| um fato que só vale numa pasta | `sddkit memory add "use Decimal" --paths "services/billing/**"` |
+| registrar um guia para outro projeto | `sddkit playbook new "pipeline assíncrono de arquivos"` |
+| ver skills sugeridas para minha stack | `sddkit suggest` |
+| instalar uma skill | `sddkit add grill-me` ou `sddkit add owner/repo@skill` |
+| adicionar um especialista | `sddkit role list` → `sddkit role add ui` |
+| criar um especialista meu | `sddkit role new pix-integrator`, editar, `sddkit sync` |
+| forçar um especialista numa tarefa | escrever `[@api]` na linha da tarefa em `tasks.md` |
+| commits padronizados e sem atribuição de IA | `sddkit commitlint` |
+| passar a usar outra ferramenta | `sddkit sync --agents claude,opencode` |
+| atualizar após upgrade do sddkit | `sddkit init --force-templates` (sobrescreve skills `sdd-*`, hooks e papéis do catálogo; specs e memória ficam intactos) |
+| saber o que está errado | `sddkit doctor` |
+
+**Regra de ouro:** você edita arquivos em `.agents/` (e o texto fora dos marcadores no `AGENTS.md`); depois roda `sddkit sync`. Arquivos em `.claude/`, `.opencode/`, `.gemini/` são **gerados**: editar ali é perder a edição no próximo sync.
+
+---
+
+## 6. Onde fica cada coisa
+
+| Caminho | Dono | Pode editar? |
+|---|---|---|
+| `AGENTS.md` fora dos marcadores | você | ✅ |
+| `AGENTS.md` entre `<!-- sddkit:… -->` | sddkit (`sync`) | ❌ regenerado |
+| `.agents/specs/**` | você | ✅ (o `init` nunca sobrescreve) |
+| `.agents/specs/features.md` entre marcadores | sddkit (`index`) | ❌ regenerado |
+| `.agents/memory/*.md` | você | ✅ depois `sddkit sync` |
+| `.agents/agents/*.md` (papéis) | você (vieram de templates) | ✅ depois `sddkit sync`; mas `role update` e `init --force-templates` reaplicam o template por cima |
+| `.agents/skills/sdd-*` | sddkit (templates) | ✅ mas `init --force-templates` sobrescreve |
+| `.agents/skills/speckit-*` | Spec Kit | ❌ |
+| `.agents/skills/<outras>` | o autor da skill (`npx skills`) | ❌ atualize com `npx skills update` |
+| `.agents/skills/<sua-skill>` | você | ✅ |
+| `.agents/hooks/*` | sddkit | ❌ |
+| `.specify/memory/constitution.md` | você (via `/speckit-constitution`) | ✅ |
+| `.specify/` (resto) | Spec Kit | ❌ |
+| `.claude/`, `.opencode/`, `.gemini/`, `CLAUDE.md` | sddkit (adaptadores) | ❌ exceto conteúdo seu já existente, que é preservado |
+
+### Uma feature por dentro
+```
+.agents/specs/features/001-baixar-fatura/     ↔ branch 001-baixar-fatura
+├── spec.md          o quê e por quê (histórias, FR-xxx, SC-xxx, ## Change History)
+├── plan.md          como (stack, estrutura, comandos de teste)
+├── research.md      decisões técnicas e alternativas
+├── data-model.md    entidades e relações
+├── contracts/       API/eventos
+├── tasks.md         - [ ] T001 [P] [US1] Descrição em caminho/arquivo.ext
+├── analysis.md      relatório do sdd-analyst
+├── checklists/      checklists de requisitos
+└── reviews/         relatórios dos revisores e da conformidade spec × código
+```
+
+### Um change request por dentro
 ```yaml
 ---
-name: sdd-analyst
-description: ...
-capabilities: [read, shell, write]   # read | write | edit | shell | web
-tier: strong                         # fast → sonnet / strong → opus (Claude); OpenCode herda o modelo
-skills: [speckit-analyze]            # pré-carregadas onde a ferramenta suporta
+id: CHANGE-001                 # sequencial, gerado pelo `sddkit change new` (nunca à mão)
+title: "Parcelamento de faturas"
+status: Proposed               # Proposed | Approved | Rejected | In Progress | Implemented
+feature: "001"                 # NNN da feature, ou none
+author: Maria
+createdAt: 2026-10-22
+targetVersion: Unreleased
+priority: High
+---
+```
+Corpo: Contexto · Mudança proposta · Impacto (spec, contratos, dados, código, operação) · Decisões · Critérios de aceite · Tarefas · Drift report. Datas e observações vão no corpo, **nunca** no campo `status`.
+
+### Adaptadores
+| Ferramenta | Lê sozinha | O que o sddkit gera |
+|---|---|---|
+| Codex, Cursor, Copilot, Amp, Zed, Kilo, Antigravity, Droid | `AGENTS.md` + `.agents/skills` | nada; sem subagents, o agente executa o papel ele mesmo |
+| Claude Code (`claude`) | — | `.claude/skills` → link para `.agents/skills`; `.claude/agents/*.md`; `CLAUDE.md` com `@AGENTS.md`; permissões e hook em `.claude/settings.json` |
+| OpenCode (`opencode`) | `AGENTS.md` + `.agents/skills` | `.opencode/agents/*.md` |
+| Gemini CLI (`gemini`) | `.agents/skills` | `.gemini/settings.json` lendo `AGENTS.md` |
+
+No Windows, links viram cópias (`--copy`).
+
+---
+
+## 7. Subagents especialistas
+
+Um **subagent** é um agente com contexto limpo e um único trabalho. O orquestrador manda **caminhos** (nunca o conteúdo) e recebe um resumo curto. Vantagens: contexto do principal não incha, tarefas independentes rodam em paralelo e cada especialista já vem com as skills do seu domínio carregadas.
+
+### Núcleo (sempre instalado)
+| Papel | Faz |
+|---|---|
+| `sdd-researcher` | responde uma dúvida técnica do plano (rodam em paralelo) |
+| `sdd-implementer` | executa uma tarefa quando nenhum especialista se aplica |
+| `sdd-analyst` | confere spec ↔ plano ↔ tarefas ↔ constituição antes de implementar |
+| `sdd-converger` | depois de implementar: roda os testes e confere cada requisito no código real |
+
+### Especialistas (`sddkit role add …`)
+| Papel | Tipo | Entra quando a tarefa toca… | Skills que carrega (se instaladas) |
+|---|---|---|---|
+| `ui` | implementa | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/` | frontend-design, vercel-react-best-practices, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
+| `api` | implementa | `api/`, `routes/`, `services/`, `*.controller.*` | claude-api, express, nodejs |
+| `data` | implementa | `migrations/`, `prisma/`, `*.sql`, `models/` | domain-modeling, prisma |
+| `qa` | implementa | `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, playwright-skill, webapp-testing, route-tester |
+| `devops` | implementa | `Dockerfile`, `.github/workflows/`, `*.tf` | setup-pre-commit, deploy-to-vercel |
+| `docs` | implementa | `docs/`, `README`, ADRs | domain-modeling |
+| `event-module` | implementa | `modules/`, `domain/`, `events/` (lógica pura, sem IO) | property-based-testing |
+| `queue-worker` | implementa | `workers/`, `queues/`, `*.worker.ts` | — |
+| `bill-parser` | implementa | `parsers/`, `faturas/`, `layouts/` | — |
+| `ui-reviewer` | revisa (fim da história) | a história tocou UI | web-design-guidelines, playwright-skill, webapp-testing, apple-design, ui-ux-pro-max |
+| `security-reviewer` | revisa (convergência) | sempre, o diff da feature | differential-review, fp-check, variant-analysis |
+| `sast-scanner` | revisa (convergência) | sempre (Semgrep) | semgrep, sarif-parsing, fp-check |
+| `supply-chain-auditor` | revisa (convergência) | a feature mexeu em dependências | supply-chain-risk-auditor |
+| `actions-auditor` | revisa (convergência) | a feature mexeu em `.github/workflows` | agentic-actions-auditor |
+| `contract-reviewer` | revisa (convergência) | contratos, filas ou parsers | — |
+
+**Como o especialista é escolhido** (`waves.py`): cada papel tem `route_globs` (arquivos) e `route_keywords` (palavras). A tarefa vai para quem pontuar mais (3× por arquivo que casa + palavras da descrição). Errou? Escreva `[@papel]` na linha da tarefa. Ninguém casou? `sdd-implementer`.
+
+**Revisores** não editam código: gravam relatório em `FEATURE_DIR/reviews/` e devolvem tarefas de correção, que o `/sdd-build` executa antes de seguir.
+
+**Regras que valem para todos:** subagents não criam subagents; o formato de relatório do papel vence skills de estilo (como caveman e ponytail); só o orquestrador edita `tasks.md` e faz commit.
+
+### Criar o seu
+```bash
+sddkit role new pix-integrator            # ou --kind reviewer
+# edite .agents/agents/pix-integrator.md: description, route_globs, route_keywords, skills e o prompt
+sddkit sync
+```
+Formato:
+```yaml
+---
+name: pix-integrator
+description: Integra cobranças PIX com idempotência e verificação de webhook.
+kind: implementer                      # implementer | reviewer
+capabilities: [read, edit, write, shell]
+tier: strong                           # fast → modelo rápido · strong → modelo forte
+skills: [tdd]                          # pré-carregadas (só as instaladas)
+route_globs: ["**/pix/**"]
+route_keywords: [pix, cobrança, webhook]
 max_turns: 40
 ---
-<prompt do papel>
+<instruções do papel>
 ```
 
-## Memória do projeto
-Fatos e convenções que todo agente deve saber, versionados em `.agents/memory/<tópico>.md` (um fato por linha; editável à mão — depois `sddkit sync`).
+---
 
-| Tipo | Onde aparece | Claude Code | Demais ferramentas |
-|---|---|---|---|
-| Global (sem `--paths`) | bloco "Memória do projeto" no `AGENTS.md` | via `@AGENTS.md`, toda sessão | toda sessão |
-| Por área (`--paths`) | ponteiro no `AGENTS.md` | `.claude/rules/sddkit-memory-<tópico>.md` com `paths:` — carrega só ao tocar esses arquivos | leem o arquivo quando o ponteiro manda |
+## 8. Skills: o catálogo
 
-Constituição ≠ memória: a constituição (`/speckit-constitution`) traz **princípios** que viram gate no plano; a memória traz **fatos e armadilhas** ("a fila se chama `bills`", "Energisa mudou o layout em 2024-03"). Prefira `--paths` para manter o `AGENTS.md` abaixo de 200 linhas (o `doctor` avisa).
+`sddkit suggest` mostra as skills que combinam com a sua stack, agrupadas pela fase em que ajudam:
 
-## Specs, change requests e playbooks
-Tudo que descreve o sistema vive em `.agents/specs/`, versionado junto com o código.
+| Grupo | Para quê | Skills (★ = instalada por padrão) |
+|---|---|---|
+| **Starting** | afiar ideias e entender código existente | ★ grill-me · grill-with-docs · domain-modeling · ★ improve-codebase-architecture · planning-with-files |
+| **Coding** | padrões de código e frameworks | ★ ponytail · ★ react-best-practices · ★ react-native · ★ mcp-builder · ★ claude-api · Claude Code Kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs |
+| **UI** | design e interface | ★ frontend-design · web-design-guidelines · impeccable · ★ apple-design · ★ ui-ux-pro-max · theme-factory |
+| **Testing** | testes e depuração | ★ tdd · ★ diagnosing-bugs · webapp-testing · ★ playwright · property-based-testing · cck-route-tester |
+| **Review** | revisão e verificação | ★ superpowers · ★ spec-to-code-compliance |
+| **Security** | segurança | ★ security-review · ★ semgrep · ★ security-audit · ★ supply-chain-risk-auditor · ★ agentic-actions-auditor |
+| **Workflow** | git, commits e manutenção | ★ git-guardrails-claude-code · ★ setup-pre-commit · conventional-git · ★ caveman · ★ find-skills · ★ skill-creator · deploy-to-vercel |
 
-- **Features** (`features/NNN-slug/`): criadas pelo `/sdd-feature`, que passa `SPECIFY_FEATURE_DIRECTORY` e `GIT_BRANCH_NAME` ao Spec Kit (sem isso ele usaria `specs/`). A pasta e a branch têm o mesmo `NNN-slug`.
-- **Change requests** (`changes/YYYY-MM-DD-slug.md`): o `/sdd-change` classifica cada pedido antes de agir.
-  - **Tipo A (local):** bug, ajuste visual, texto, refatoração local. Teste e mudança mínima, sem CR.
-  - **Tipo B (estrutural):** API, contrato, evento, schema, arquitetura ou regra de negócio. Segue CR → aprovação explícita ("aprovado"/"approved") → spec da feature atualizada (com `## Change History`) → tarefas numa fase `CHANGE-NNN` do `tasks.md` da feature (`/sdd-build --phase N`) → drift report no CR → `CHANGELOG.md` com `[CHANGE-NNN]` → `sddkit index`.
-  - Frontmatter: `id`, `title`, `status` (`Proposed | Approved | Rejected | In Progress | Implemented`, datas vão no corpo), `feature` (`NNN` ou `none`), `author`, `createdAt`, `targetVersion`, `priority`. O id vem de `sddkit change new`, nunca à mão.
-- **Playbooks** (`playbooks/`): guias de construção escritos para outro código-base: arquitetura, passo a passo, armadilhas reais e como verificar.
-- **Índice** (`features.md`): gerado entre marcadores. O status de cada feature é calculado pelas tarefas (`Specified → Planned → In Progress → Implemented`), e aparecem os CRs ligados a cada uma. `sync`, `change new` e `playbook new` o atualizam.
+Só aparecem as que casam com o projeto: `cck-prisma` só se houver Prisma, `apple-design` só em app mobile/desktop, `security-audit` só com código existente (5+ arquivos).
 
-### Drift (`sddkit doctor`)
-Além da instalação, o `doctor` confere:
+**Oficial × comunidade.** Skills de publicadores conhecidos (`anthropics`, `vercel-labs`, `cloudflare`, `trailofbits`) aparecem primeiro. As de **comunidade** saem com "⚠ revise antes de usar": uma skill é um texto que o agente obedece, então leia antes de confiar. Skills com efeitos fora do projeto (hooks, download de binário, upload, instalação global) trazem um aviso ⚠ na descrição.
+
+Qualquer skill do ecossistema [skills.sh](https://skills.sh) também funciona: `sddkit add owner/repo@skill`.
+
+---
+
+## 9. Memória, skills de projeto e playbooks
+
+Há quatro jeitos de ensinar algo ao agente. Escolha pelo tamanho e pelo alcance:
+
+| Tenho… | Use | Exemplo |
+|---|---|---|
+| um fato curto, válido no projeto todo | `sddkit memory add "…"` | "a fila se chama `bills`" |
+| um fato curto, válido numa pasta | `sddkit memory add "…" --paths "glob"` | "em `services/billing/**` valores são `Decimal`" |
+| um procedimento ou regra com exemplos | uma **skill do projeto** em `.agents/skills/<nome>/SKILL.md` (crie com `/skill-creator`) | "toda query em coleção que cresce sem limite usa cursor e projeção" |
+| um guia para reaproveitar em **outro** projeto | `sddkit playbook new "…"` | "pipeline assíncrono de upload → fila → worker → progresso" |
+| um princípio inegociável | a **constituição** | "TDD obrigatório" |
+
+- **Memória** vira um bloco no `AGENTS.md`. Com `--paths`, no Claude Code ela só é carregada quando o agente mexe naqueles arquivos, o que mantém o `AGENTS.md` enxuto (o `doctor` avisa acima de 200 linhas).
+- **Skill do projeto**: a `description` diz *quando* ela vale ("use ao editar `server/src/repositories/**`"); o agente a carrega sozinho quando a tarefa casa.
+- **Playbook**: escrito para ser entregue a um agente num código-base diferente: arquitetura, passo a passo, armadilhas reais e como verificar.
+
+---
+
+## 10. Segurança e commits
+
+| Camada | O que faz | Depende do modelo obedecer? |
+|---|---|---|
+| **Revisores** | `security-reviewer` (diff, falso positivo, variantes, LGPD, authz), `sast-scanner` (Semgrep), `supply-chain-auditor`, `actions-auditor` na convergência de cada feature | sim |
+| **Conformidade** | na convergência, cada requisito da spec é checado no código por um subagent e contestado por outro | sim |
+| **Guarda de segredos** | `.agents/hooks/guard_secrets.py` bloqueia escrita de chaves/tokens (AWS, GitHub, Anthropic, OpenAI, Slack, Stripe, Google, chave privada, URL com senha) e CPF/CNPJ válidos; no Claude Code também nega leitura de `.env*`, `*.pem`, `*.key` e chaves SSH | **não** |
+| **Commits** | `sddkit commitlint`: hook `commit-msg` com Conventional Commits e bloqueio de atribuição de IA | **não** |
+
+**Guarda de segredos em qualquer ferramenta:** coloque `python3 .agents/hooks/guard_secrets.py --staged` no pre-commit. Falso positivo? Comentário `sddkit:allow-secret` na linha. Fixtures com CPF/CNPJ devem usar dígito verificador **inválido** (ex.: `123.456.789-00`).
+
+**Semgrep:** na primeira vez o `sast-scanner` devolve o plano de varredura para você aprovar; o `/sdd-build` grava a aprovação em `.agents/security/semgrep-plan.json` e não pergunta de novo. Sem o CLI: `uv tool install semgrep`.
+
+### Commits padronizados (`sddkit commitlint`)
+```bash
+sddkit commitlint            # --no-install para não instalar pacotes npm
+```
+- **Projeto Node:** instala `@commitlint/cli` + `@commitlint/config-conventional` com o seu gerenciador (npm/pnpm/yarn/bun) e cria `commitlint.config.mjs`, **só se** não houver config. A sua é mantida.
+- **Sem Node:** o próprio script exige o formato `tipo(escopo): assunto`.
+- **Sempre:** recusa `Co-authored-by` de agentes de IA (Claude, Copilot, Cursor, Codex, Gemini…), "Generated with Claude Code" e `Claude-Session:`. Coautores humanos passam.
+- O hook vai para o `.husky/` se existir; senão, para `.githooks/` (cada clone roda `git config core.hooksPath .githooks` uma vez). Hooks existentes são preservados.
+- Os commits automáticos do `/sdd-build` já saem nesse formato.
+- Complemento natural: a skill `conventional-git` (`sddkit add conventional-git`) ensina o agente a escrever as mensagens certas antes de o hook precisar barrar.
+
+---
+
+## 11. O `doctor`: saúde e drift
+
+```bash
+sddkit doctor
+```
+
+**Instalação:** Spec Kit, Node, git, `.specify/`, blocos no `AGENTS.md`, tamanho do `AGENTS.md`, `CLAUDE.md` importando `@AGENTS.md`, skills núcleo, papéis, constituição preenchida, adaptadores gerados, papéis e skills recomendados.
+
+**Drift** (specs que deixaram de dizer a verdade):
 
 | Checagem | Pega |
 |---|---|
-| Specs só em `.agents/specs/` | `specs/` ou `.specify/specs/` esquecidos |
-| `.specify/feature.json` e bloco SPECKIT do `AGENTS.md` | ponteiro para feature/plano que não existe |
-| Referências a arquivos | caminhos citados no `AGENTS.md`, na constituição e nos docs centrais que não existem (`/x` é estrito; `x/y` vale se algum arquivo versionado terminar nele) |
-| Docs centrais preenchidos | `architecture.md`/`stack.md`/… ainda com `[PREENCHER` |
-| Dependências de arquitetura | framework, ORM, fila ou SDK no manifesto que não aparece em `architecture.md`/`stack.md` |
-| Features | pasta sem `spec.md`; `features.md` desatualizado |
-| Change requests | id duplicado, status fora do enum, sem `feature:` |
-| Claude Code | `.claude/` sem `CLAUDE.md` que importe `@AGENTS.md` |
+| specs só em `.agents/specs/` | pastas esquecidas em `specs/` ou `.specify/specs/` |
+| ponteiros do Spec Kit | `.specify/feature.json` ou bloco SPECKIT do `AGENTS.md` apontando para o que não existe |
+| referências a arquivos | caminhos citados no `AGENTS.md`, na constituição e nos docs centrais que não existem |
+| docs centrais preenchidos | `architecture.md`/`stack.md`/… ainda com `[PREENCHER` |
+| dependências de arquitetura | framework, ORM, fila ou SDK no manifesto que não aparece em `architecture.md`/`stack.md` |
+| features | pasta sem `spec.md`; `features.md` desatualizado |
+| change requests | id duplicado, status fora do padrão, sem `feature:` |
 
-### Skills de regras do projeto
-Regra que só vale numa área do código e que o agente precisa seguir sempre que mexer nela ("toda query em coleção que cresce sem limite usa cursor e projeção", "debug em produção sempre com `maxTimeMS`") vira **skill do projeto**: `.agents/skills/<nome>/SKILL.md` com uma `description` que diga *quando* ela vale (pasta, tipo de tarefa). O agente carrega a skill sozinho quando a tarefa casa com a descrição. Para criar: `/skill-creator`.
-- Fato curto ("a fila se chama `bills`") → `sddkit memory add`.
-- Fato curto que só vale numa pasta → `sddkit memory add --paths`.
-- Procedimento ou regra com exemplos → skill do projeto.
-- Guia para levar a outro projeto → playbook.
+O `doctor` **só lê**: pode rodar à vontade, inclusive no CI. Sai com código 1 se houver pendência.
 
-## Subagents especialistas pré-definidos
-| Papel | Tipo | Modelo | Entra quando | Skills pré-carregadas (se instaladas) |
-|---|---|---|---|---|
-| `ui` | implementer | strong | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/`, `app/**/page.*`, "tela", "componente"… | frontend-design, vercel-react-best-practices, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
-| `ui-reviewer` | reviewer (fim da história) | strong | a história tocou arquivos de UI | web-design-guidelines, playwright-skill, webapp-testing, apple-design, ui-ux-pro-max |
-| `api` | implementer | fast | `api/`, `routes/`, `services/`, `*.controller.*`, "endpoint", "webhook"… | claude-api, express, nodejs |
-| `data` | implementer | fast | `migrations/`, `prisma/`, `*.sql`, `models/`, "migration", "schema"… | domain-modeling, prisma |
-| `qa` | implementer | fast | seções `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, playwright-skill, webapp-testing, route-tester |
-| `security-reviewer` | reviewer (convergência) | strong | sempre, sobre o diff da feature | — |
-| `devops` | implementer | fast | `Dockerfile`, `.github/workflows/`, `*.tf`, "deploy"… | setup-pre-commit, deploy-to-vercel |
-| `docs` | implementer | fast | `docs/`, `README`, ADR, "quickstart"… | domain-modeling |
-| `event-module` | implementer | fast | `modules/`, `domain/`, `events/`, `contracts/`, "módulo", "evento"… — lógica pura, sem banco/IO | — |
-| `queue-worker` | implementer | fast | `workers/`, `queues/`, `*.worker.ts`, "bullmq", "fila"… — fila → módulo → POST interno | — |
-| `bill-parser` | implementer | strong | `parsers/`, `*parser*.py`, `faturas/`, `layouts/`, "fatura", "distribuidora", "SCEE"… | — |
-| `contract-reviewer` | reviewer (convergência, se a feature tocou contratos/fila/parsers) | strong | deriva de contrato TS ↔ Python ao longo da cadeia | — |
+---
 
-**Roteamento** (`waves.py`): score = 3×arquivos que casam `route_globs` + palavras de `route_keywords` na descrição (+2 para `qa` dentro de `### Tests`; +5 para papéis com `owns_tests: true` cujos globs casam — o especialista escreve os testes do próprio domínio); empate → `priority`. `[@papel]` na linha da tarefa força; sem match → `sdd-implementer`.
-**Revisores** gravam relatório em `specs/NNN/reviews/` e devolvem tarefas CRITICAL/HIGH com `[@papel]`, que o `/sdd-build` anexa numa fase "Review fixes" e executa antes de seguir.
-Para criar um papel: `sddkit role new <nome>` (ou `--kind reviewer`), preencha `description`, `route_globs` e `route_keywords`, e rode `sddkit sync`.
+## 12. Referência de comandos
 
-## Segurança
-Três camadas — da que depende do modelo à que não depende:
-
-| Camada | O quê | Onde |
-|---|---|---|
-| **Revisores** (convergência, em paralelo) | `security-reviewer` — revisão diferencial do diff + `fp-check` + `variant-analysis`, LGPD, authz, rotas internas, PIX/webhooks · `sast-scanner` — Semgrep (oficial + Trail of Bits/0xdea/Decurity) nos arquivos alterados, SARIF, triagem · `supply-chain-auditor` — só se a feature mexe em manifestos/lockfiles · `actions-auditor` — só se mexe em `.github/workflows` | `.agents/agents/`, skills de [trailofbits/skills](https://github.com/trailofbits/skills) (CC-BY-SA 4.0) |
-| **Convergência** | `sdd-converger` usa `spec-to-code-compliance`: acha também comportamento que nenhuma spec pede | núcleo |
-| **Determinística** (não depende do modelo obedecer) | hook `guard_secrets.py` bloqueia escrita de chaves/tokens (AWS, GitHub, Anthropic, OpenAI, Slack, Stripe, Google, chave privada, URL com senha) e CPF/CNPJ com dígito verificador válido · `permissions.deny` de leitura de `.env*`, `*.pem`, `*.key`, chaves SSH | Claude: `PreToolUse` em `.claude/settings.json` · qualquer ferramenta: `python3 .agents/hooks/guard_secrets.py --staged` no pre-commit (husky) |
-| **Commits** (`sddkit commitlint`) | hook `commit-msg` com `.agents/hooks/commit_msg.py`: recusa `Co-authored-by` de agentes de IA (Claude, Copilot, Cursor, Codex, Gemini…), "Generated with Claude Code" e `Claude-Session:`. Em projeto node instala `@commitlint/cli` + `config-conventional` (cria `commitlint.config.mjs` só se não houver config); sem node, o próprio script exige o cabeçalho Conventional Commits. Usa o Husky se existir, senão `.githooks/` com `core.hooksPath`; hook existente é preservado (as linhas do sddkit entram no topo, com `\|\| exit 1`). Par natural da skill `conventional-git`. |
-
-- Semgrep exige aprovação humana do plano de varredura: na 1ª vez o `sast-scanner` devolve `PLANO PENDENTE`, o `/sdd-build` pergunta e grava em `.agents/security/semgrep-plan.json`; depois roda sem perguntar enquanto linguagens e rulesets forem os mesmos. Sem o CLI: `uv tool install semgrep`.
-- Fixtures (LGPD): use CPF/CNPJ com DV **inválido** (ex.: `123.456.789-00`). Falso positivo do guard: comentário `sddkit:allow-secret` na linha; `*.example`/`*.sample` são ignorados.
-- Atualizar papéis instalados após upgrade do sddkit: `sddkit role update` (ou `sddkit init --force-templates`).
-
-## Catálogo de sugestões
-`src/sddkit/catalog.json`. A detecção varre a raiz e pacotes de monorepo (até 3 níveis: `package.json`, `pyproject.toml`, `requirements*.txt`). Cada entrada traz fonte, skills (com dependências: `grill-me` instala `grilling`), em que fase do SDD ajuda e quando sugerir (`always`, `has_code` ou `stacks` detectadas a partir de package.json, pyproject, go.mod, vercel.json…). Recomendadas (★) são instaladas por padrão.
-
-**Níveis de publicador.** `suggest` agrupa as skills (Starting → Coding → UI → Testing → Review → Security → Workflow) e, em cada grupo, lista primeiro as **oficiais** (publicadores conhecidos: `anthropics`, `vercel-labs`, `cloudflare`, `trailofbits` — `OFFICIAL_PUBLISHERS` em `cli.py`) e depois as de **comunidade** (indivíduos e projetos independentes), que o `add` marca com ⚠ para revisão. Entradas com efeitos fora do projeto (hooks, downloads de binário, upload, instalação global) trazem um aviso ⚠ na descrição.
-
-| Grupo | Skills (quando sugerir) |
-|---|---|
-| **Starting** | ★ grill-me (sempre) · grill-with-docs (sempre) · domain-modeling (sempre) · ★ improve-codebase-architecture (código existente) · planning-with-files (sempre) |
-| **Coding** | ★ ponytail (sempre) · ★ react-best-practices (react, next) · ★ react-native (react-native, expo) · ★ mcp-builder (mcp) · ★ claude-api (anthropic-sdk) · ★ cck-express (express) · ★ cck-nodejs (node) · ★ cck-prisma (prisma) · ★ cck-tailwindcss (tailwind) · ★ cck-shadcn (shadcn) · ★ cck-mui (mui) · ★ cck-tanstack-query (tanstack-query) · ★ cck-tanstack-router (tanstack-router) · cck-react (react) · cck-nextjs (next) |
-| **UI** | ★ frontend-design (frontend) · web-design-guidelines (frontend) · impeccable (frontend) · ★ apple-design (apple, react-native, flutter, desktop) · ★ ui-ux-pro-max (frontend, react-native, flutter, apple, desktop) · theme-factory (frontend) |
-| **Testing** | ★ tdd (sempre) · ★ diagnosing-bugs (sempre) · webapp-testing (frontend) · ★ playwright (frontend) · property-based-testing (fast-check, queue, pydantic) · cck-route-tester (backend) |
-| **Review** | ★ superpowers (sempre) · ★ spec-to-code-compliance (sempre) |
-| **Security** | ★ security-review (sempre) · ★ semgrep (sempre) · ★ security-audit (código existente) · ★ supply-chain-risk-auditor (node, python, go, rust) · ★ agentic-actions-auditor (ci) |
-| **Workflow** | ★ git-guardrails-claude-code (sempre) · ★ setup-pre-commit (node) · conventional-git (sempre) · ★ caveman (sempre) · ★ find-skills (sempre) · ★ skill-creator (sempre) · deploy-to-vercel (vercel) |
-
-## Fluxo no agente
-```text
-/speckit-constitution TDD obrigatório; LGPD by design; ...
-/sdd-feature Cooperado baixa a fatura do mês --stack NestJS+Postgres --grill
-/sdd-build --mvp
-/sdd-change Fatura passa a aceitar parcelamento   # Tipo B → CR, aprovação, spec, código, CHANGELOG
+### No terminal
+```bash
+sddkit init [dir] [--agents claude,opencode,gemini|all|none] [--roles recommended|all|none|ui,api]
+                  [--skills recommended|all|none|1,4,grill-me] [-y] [--copy] [--no-speckit] [--no-git] [--force-templates]
+sddkit suggest [--json]                       # stack detectada + skills e papéis sugeridos
+sddkit add <id…> | owner/repo@skill           # instala skills
+sddkit role list | add <papel…> [--no-skills] | remove <papel> | new <nome> [--kind reviewer] | update
+sddkit memory add "fato" [-t tópico] [--paths "glob,glob"] [-d "descrição"] | list | rm <tópico> [n]
+sddkit change new "título" [--feature NNN|none] [--priority Low|Medium|High|Critical]
+sddkit playbook new "nome"
+sddkit index                                  # regenera .agents/specs/features.md
+sddkit commitlint [--no-install]
+sddkit sync [--agents …] [--copy]             # regenera AGENTS.md e adaptadores a partir de .agents/
+sddkit doctor
 ```
 
-## Desenvolvimento: harness de bugs
-`tests/test_harness.py` cria projetos de exemplo em pastas temporárias (vazio, Node com React/Express/Prisma/Tailwind/shadcn, Python, Husky com commitlint já configurado, specs no estilo photon com drift) e roda o `sddkit` de verdade contra eles. Confere:
-- o resultado de cada comando;
-- que rodar de novo não muda nada (`init` e `sync` são idempotentes, `doctor` não escreve);
-- commits reais aceitos ou recusados pelo hook.
+### No agente
+| Comando | Para | Opções |
+|---|---|---|
+| `/speckit-constitution <princípios>` | criar/atualizar a constituição | — |
+| `/sdd-feature <descrição>` | da ideia ao `tasks.md` revisado | `--stack "…"` · `--grill` / `--no-grill` · `--auto` |
+| `/sdd-build` | implementar em ondas com especialistas e revisores | `--mvp` · `--phase N` · `--max-parallel K` · `--no-commit` |
+| `/sdd-change <o que mudar>` | mudar algo existente (Tipo A ou CR Tipo B) | `--feature NNN` |
+| `/grill-me` | interrogatório para afiar uma ideia | — |
+| `/speckit-specify`, `-clarify`, `-plan`, `-checklist`, `-tasks`, `-analyze`, `-implement`, `-converge`, `-taskstoissues` | fases avulsas do Spec Kit | — |
+
+---
+
+## 13. Perguntas frequentes
+
+**Preciso usar Claude Code?** Não. Qualquer agente que leia `AGENTS.md` funciona. Sem suporte a subagents, o agente executa cada papel ele mesmo, em sequência.
+
+**O agente não reconhece `/sdd-feature`.** Peça: "leia e siga `.agents/skills/sdd-feature/SKILL.md` com: <descrição>".
+
+**Editei algo em `.claude/agents/` e sumiu.** Arquivos de adaptador são gerados. Edite a fonte em `.agents/agents/` e rode `sddkit sync`.
+
+**Onde o Spec Kit guarda as coisas?** O motor fica em `.specify/` na raiz (é do Spec Kit; não mexa). As features ficam em `.agents/specs/features/`, porque o `/sdd-feature` informa esse caminho ao Spec Kit. Se você rodar `/speckit-specify` direto, passe `SPECIFY_FEATURE_DIRECTORY=.agents/specs/features/NNN-slug`, ou ele cria em `specs/`.
+
+**Posso pular a aprovação de um CR?** Não: o gate do Tipo B existe justamente para mudanças estruturais. Se a mudança é pequena de verdade, ela é Tipo A e não tem CR.
+
+**Uma skill de comunidade é segura?** Ela é um texto que o agente segue, às vezes com scripts. Leia o `SKILL.md` antes. O sddkit marca as de comunidade e avisa quando uma skill instala hooks, baixa binários ou envia dados.
+
+**Como atualizo o sddkit num projeto?** `uv tool upgrade sddkit` e depois `sddkit init --force-templates`: atualiza skills `sdd-*`, hooks e papéis do catálogo **sobrescrevendo edições suas nesses arquivos** (faça commit antes e compare com `git diff`); specs, memória, constituição e papéis criados com `role new` ficam intactos. Rode `sddkit doctor` no fim.
+
+**O `AGENTS.md` está enorme.** Mova fatos para tópicos com `--paths` (`sddkit memory add … --paths`) e procedimentos para skills do projeto.
+
+---
+
+## 14. Desenvolvendo o sddkit
+
+`tests/test_harness.py` monta projetos de exemplo em pastas temporárias (vazio; Node com React, Express, Prisma, Tailwind e shadcn; Python; Husky com commitlint; specs com drift no estilo de um projeto real) e roda o `sddkit` de verdade contra eles. Confere o resultado de cada comando, que rodar de novo não muda nada (`init` e `sync` são idempotentes, `doctor` não escreve) e commits reais aceitos ou recusados pelo hook.
 
 ```bash
-python -m pytest tests -q                 # offline, ~3 s (também roda no CI a cada push)
+python -m pytest tests -q                 # offline, ~3 s; roda no CI a cada push
 SDDKIT_E2E=1 python -m pytest tests -q    # + Spec Kit, npx skills e npm commitlint de verdade
 ```
-Todo bug achado vira um caso marcado com `regressão:` no teste. Para conferir que o teste pega o bug, reintroduza o defeito e veja o teste falhar.
+
+Todo bug achado vira um caso marcado com `regressão:` no teste. Para conferir que um teste pega o bug, reintroduza o defeito e veja-o falhar.
+
+O catálogo de skills fica em `src/sddkit/catalog.json` (fonte, skills, grupo, quando sugerir, recomendada ou não); os templates de skills, papéis e specs em `src/sddkit/templates/`.
