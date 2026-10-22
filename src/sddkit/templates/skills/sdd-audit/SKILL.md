@@ -27,7 +27,7 @@ Rode e guarde só o resumo (comando → passou/falhou, contagens, primeiras linh
 Ferramenta ausente não é falha: registre "não executado" com o comando de instalação.
 
 ## 2. Caça de bugs por área (subagents somente leitura, em paralelo)
-1. Divida o código em áreas pela estrutura real (pacotes, serviços, pastas de topo). Máx. 6 áreas por rodada; com `--scope`, só ela.
+1. Divida o código em áreas pela estrutura real (pacotes, serviços, pastas de topo), partindo de `## Mapa do código` em `architecture.md`; área real que falta no mapa vai ao relatório como achado LOW (próximo `/sdd-change`). Máx. 6 áreas por rodada; com `--scope`, só ela.
 2. Para cada área, dispare um subagent **somente leitura** (sem editar arquivos) com: a área, o resumo da parte 1 que a toca e esta instrução:
    > Procure defeitos reais, não estilo: entradas não validadas na borda, erros engolidos, condições de corrida, recursos que vazam, falta de timeout/idempotência em efeitos externos, autorização faltando, queries sem limite em coleções que crescem, divergência entre contrato e implementação. Para cada achado devolva: `arquivo:linha`, o defeito em 1 frase, o cenário concreto que o dispara, severidade (CRITICAL/HIGH/MEDIUM/LOW), confiança (alta/média) e o teste que falharia hoje. Nada de achado sem cenário concreto.
 3. Skills instaladas que ajudam (o subagent lê se existirem): `diagnosing-bugs`, `security-audit` (auditoria completa de segurança — cara; só se o usuário pedir ou houver suspeita) e as skills de regras do próprio projeto em `.agents/skills/` cuja descrição case com a área.

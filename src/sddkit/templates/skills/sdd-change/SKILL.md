@@ -30,7 +30,7 @@ Diga a classificação em 1 linha, com o motivo.
 
 ## 4. Spec antes do código
 1. Atualize `spec.md` da feature: FR/SC alterados ou novos, e uma linha na tabela `## Change History` (crie a seção no fim se não existir): `| CHANGE-NNN | AAAA-MM-DD | resumo |`.
-2. Atualize contratos (`contracts/`, schemas, OpenAPI) e, se a arquitetura mudou, `.agents/specs/architecture.md`/`stack.md` — no mesmo commit da mudança.
+2. Atualize contratos (`contracts/`, schemas, OpenAPI) e, se a arquitetura mudou, `.agents/specs/architecture.md`/`stack.md` — no mesmo commit da mudança. Moveu, criou ou removeu ponto de entrada, pasta-chave ou pasta de testes? Atualize a linha da área em `## Mapa do código`.
 3. `status: In Progress`.
 
 ## 5. Implementação

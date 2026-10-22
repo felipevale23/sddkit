@@ -11,6 +11,11 @@ Serviços/pacotes, quem fala com quem e por qual canal (HTTP, fila, socket, even
 ## Componentes
 Para cada serviço/pacote: responsabilidade, pasta, tecnologia, dependências.
 
+## Mapa do código
+Pontos de entrada por área, para o agente não redescobrir o código a cada sessão. Uma linha por área, só caminhos
+(o `sddkit doctor` acusa caminho que deixou de existir); detalhe fica em Componentes. Exemplo:
+- api — entrada `<app>/src/index.ts` · rotas `<app>/src/routes/` · testes `<app>/test/`
+
 ## Fluxos críticos
 Sequências que atravessam serviços (ex.: processamento assíncrono, autenticação).
 

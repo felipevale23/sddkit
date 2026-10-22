@@ -56,7 +56,8 @@ O `waves.py` devolve, por tarefa, `agent` (papel que executa) e `routed_by` (`ta
    - `NÃO EXECUTADO` (ferramenta ausente): não bloqueia; liste no relatório final com o comando de instalação sugerido.
 3. `CONVERGED` e revisores `APROVADO` → relatório.
 4. Senão → recalcule as ondas (tarefas novas no fim de tasks.md) e repita a seção 2 só para elas. Máx. 3 ciclos; depois, pare e mostre os gaps.
-5. Hooks `after_implement`.
+5. A feature criou área nova ou moveu ponto de entrada? Atualize `## Mapa do código` em `.agents/specs/architecture.md` (uma linha por área).
+6. Hooks `after_implement`.
 
 ## Relatório final (≤ 10 linhas)
 Ondas (paralelas/sequenciais) · tarefas por papel · OK / refeitas / bloqueadas · vereditos dos revisores (com caminhos de `FEATURE_DIR/reviews/`) · testes · veredito do converger · conformidade (vereditos por FR/SC ou "não executada") · commits · próximo passo (próxima história, `/speckit-taskstoissues` ou PR).

@@ -58,7 +58,7 @@ Com a fronteira vazia, mostre o resumo em uma tabela (camada · escolha · vers�
    - `## Por componente` — cada camada com tecnologia, versão maior e as bibliotecas principais pelo **nome do pacote** (ex.: `react`, `@prisma/client`, `bullmq`, `fastapi`): o `sddkit` usa esses nomes para sugerir papéis e skills;
    - `## Infraestrutura` — banco, fila, cache, hospedagem, CI, observabilidade;
    - `## Decisões` — cada escolha relevante com o porquê e a alternativa descartada (data de hoje).
-2. **`.agents/specs/architecture.md`**: preencha a seção `## Visão geral` (componentes e como conversam; um diagrama mermaid se houver mais de 2 peças) e tire o `[PREENCHER`. As demais seções ficam para quando houver código.
+2. **`.agents/specs/architecture.md`**: preencha a seção `## Visão geral` (componentes e como conversam; um diagrama mermaid se houver mais de 2 peças) e tire o `[PREENCHER`. Se já houver código, preencha também `## Mapa do código` (uma linha por área: entrada, pastas-chave, testes). As demais seções ficam para quando houver código.
 3. **Paradigma do backend** (se decidido em 7b e não for "pragmático"):
    - `.agents/specs/coding-standards.md`: seção `## Backend — paradigma` com o estilo, a arquitetura, as pastas de backend, 3–5 regras concretas com um exemplo curto cada, e a ferramenta que impõe as regras (abaixo). Deixe claro que o frontend **não** segue esta seção.
    - Memória do sddkit, para o agente saber o escopo em toda sessão:
