@@ -308,6 +308,171 @@
       "recommended": false
     },
     {
+      "id": "cck-express",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "express"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões Express: rotas, middleware, tratamento de erros, validação.",
+      "when": {
+        "stacks": [
+          "express"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-nodejs",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "nodejs"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões Node.js: async, erros, módulos, performance.",
+      "when": {
+        "stacks": [
+          "node"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-prisma",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "prisma"
+      ],
+      "phase": "/sdd-build",
+      "why": "Prisma Client: queries, relações, transações e schema.",
+      "when": {
+        "stacks": [
+          "prisma"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-tailwindcss",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "tailwindcss"
+      ],
+      "phase": "/sdd-build",
+      "why": "Tailwind CSS v4: utilitários, responsivo, dark mode, tema.",
+      "when": {
+        "stacks": [
+          "tailwind"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-shadcn",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "shadcn"
+      ],
+      "phase": "/sdd-build",
+      "why": "shadcn/ui sobre Radix + Tailwind: tabelas, formulários, diálogos.",
+      "when": {
+        "stacks": [
+          "shadcn"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-mui",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "mui"
+      ],
+      "phase": "/sdd-build",
+      "why": "Material UI: componentes, tema e estilização.",
+      "when": {
+        "stacks": [
+          "mui"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-tanstack-query",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "tanstack-query"
+      ],
+      "phase": "/sdd-build",
+      "why": "TanStack Query v5: useSuspenseQuery, mutations, cache.",
+      "when": {
+        "stacks": [
+          "tanstack-query"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-tanstack-router",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "tanstack-router"
+      ],
+      "phase": "/sdd-build",
+      "why": "TanStack Router: rotas por arquivo, loaders, navegação tipada.",
+      "when": {
+        "stacks": [
+          "tanstack-router"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "cck-react",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "react"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões React 19. Opcional: vercel-react-best-practices já cobre React.",
+      "when": {
+        "stacks": [
+          "react"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "cck-nextjs",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "nextjs"
+      ],
+      "phase": "/sdd-build",
+      "why": "Padrões Next.js. Opcional: vercel-react-best-practices já cobre Next.",
+      "when": {
+        "stacks": [
+          "next"
+        ]
+      },
+      "recommended": false
+    },
+    {
+      "id": "cck-route-tester",
+      "source": "blencorp/claude-code-kit",
+      "skills": [
+        "route-tester"
+      ],
+      "phase": "/sdd-build",
+      "why": "Testes de rotas HTTP com autenticação (JWT/cookie) e integração.",
+      "when": {
+        "stacks": [
+          "backend"
+        ]
+      },
+      "recommended": false
+    },
+    {
       "id": "skill-creator",
       "source": "anthropics/skills",
       "skills": [

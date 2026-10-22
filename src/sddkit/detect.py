@@ -17,14 +17,16 @@ NODE_MAP = {
     "react-native": {"react-native", "react"}, "expo": {"expo", "react-native", "react"},
     "@modelcontextprotocol/sdk": {"mcp"}, "@anthropic-ai/sdk": {"anthropic-sdk"},
     "@anthropic-ai/claude-agent-sdk": {"anthropic-sdk"},
-    "express": {"backend"}, "fastify": {"backend"}, "@nestjs/core": {"backend"}, "hono": {"backend"},
+    "express": {"backend", "express"}, "fastify": {"backend"}, "@nestjs/core": {"backend"}, "hono": {"backend"},
     "koa": {"backend"}, "@trpc/server": {"backend"}, "next": {"next", "react", "frontend", "backend"},
-    "prisma": {"db"}, "@prisma/client": {"db"}, "drizzle-orm": {"db"}, "typeorm": {"db"},
+    "prisma": {"db", "prisma"}, "@prisma/client": {"db", "prisma"}, "drizzle-orm": {"db"}, "typeorm": {"db"},
     "sequelize": {"db"}, "knex": {"db"}, "mongoose": {"db"}, "pg": {"db"}, "mysql2": {"db"},
     "@supabase/supabase-js": {"db"},
 }
 NODE_MAP.update({"bullmq": {"queue"}, "bull": {"queue"}, "bee-queue": {"queue"}, "pg-boss": {"queue"},
-                 "amqplib": {"queue"}, "kafkajs": {"queue"}, "zod": {"zod"}, "fast-check": {"fast-check"}})
+                 "amqplib": {"queue"}, "kafkajs": {"queue"}, "zod": {"zod"}, "fast-check": {"fast-check"},
+                 "tailwindcss": {"tailwind"}, "@mui/material": {"mui"},
+                 "@tanstack/react-query": {"tanstack-query"}, "@tanstack/react-router": {"tanstack-router"}})
 PY_PDF = {"pdfplumber", "pymupdf", "fitz", "pypdf", "pypdf2", "pdfminer.six", "pdfminer", "camelot-py",
           "tabula-py", "pytesseract", "pdf2image", "docling", "unstructured"}
 PY_MAP = {"bullmq": {"queue"}, "celery": {"queue"}, "rq": {"queue"}, "pydantic": {"pydantic"},
@@ -118,7 +120,8 @@ def detect(root: Path) -> dict:
             stacks.add("backend")
     for f, tag in [("docker-compose.yml", "docker"), ("compose.yaml", "docker"), ("compose.yml", "docker"),
                    (".github/workflows", "ci"), (".gitlab-ci.yml", "ci"), ("terraform", "iac"),
-                   ("migrations", "db"), ("prisma/schema.prisma", "db"), ("alembic.ini", "db")]:
+                   ("migrations", "db"), ("prisma/schema.prisma", "db"), ("alembic.ini", "db"),
+                   ("components.json", "shadcn")]:
         if (root / f).exists():
             stacks.add(tag)
             evidence.append(f)
