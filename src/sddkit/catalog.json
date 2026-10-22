@@ -262,7 +262,7 @@
       "when": {
         "always": true
       },
-      "recommended": false
+      "recommended": true
     },
     {
       "id": "security-review",

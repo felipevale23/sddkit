@@ -115,7 +115,7 @@ Três camadas — da que depende do modelo à que não depende:
 
 | Sempre | Stack |
 |---|---|
-| ★ grill-me, ★ tdd, ★ diagnosing-bugs, ★ ponytail, ★ find-skills, grill-with-docs, domain-modeling, skill-creator | node: ★ setup-pre-commit · react/next: ★ vercel-react-best-practices · frontend: ★ frontend-design, web-design-guidelines, webapp-testing · react-native · mcp: ★ mcp-builder · SDK Anthropic: ★ claude-api · código existente: improve-codebase-architecture |
+| ★ grill-me, ★ tdd, ★ diagnosing-bugs, ★ ponytail, ★ find-skills, grill-with-docs, domain-modeling, ★ skill-creator | node: ★ setup-pre-commit · react/next: ★ vercel-react-best-practices · frontend: ★ frontend-design, web-design-guidelines, webapp-testing · react-native · mcp: ★ mcp-builder · SDK Anthropic: ★ claude-api · código existente: improve-codebase-architecture |
 
 ## Fluxo no agente
 ```text
