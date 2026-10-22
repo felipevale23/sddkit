@@ -345,6 +345,7 @@ def test_audit_skill_and_ci_workflows():
     check = (root / ".github/workflows/sddkit.yml").read_text()
     audit = (root / ".github/workflows/sddkit-audit.yml").read_text()
     assert "sddkit sync --check" in check and "{source}" not in check
+    assert "felipevale23/sddkit@v" in check and "felipevale23/sddkit@v" in audit   # versão fixada
     assert "${{ secrets.ANTHROPIC_API_KEY }}" in audit and "anthropics/claude-code-action@v1" in audit
     assert "contents: read" in audit and "contents: write" not in audit   # auditoria não faz commit
     (root / ".github/workflows/sddkit.yml").write_text("meu ci\n")

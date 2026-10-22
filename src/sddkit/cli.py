@@ -667,7 +667,7 @@ def cmd_playbook(args) -> int:
     return 0
 
 
-SDDKIT_SOURCE = "git+https://github.com/felipevale23/sddkit"
+SDDKIT_SOURCE = f"git+https://github.com/felipevale23/sddkit@v{__version__}"  # CI fixa a versão que gerou o workflow
 
 
 def cmd_ci(args) -> int:
