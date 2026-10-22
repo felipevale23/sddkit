@@ -223,6 +223,22 @@
       "recommended": true
     },
     {
+      "id": "ponytail",
+      "source": "DietrichGebert/ponytail",
+      "skills": [
+        "ponytail",
+        "ponytail-review",
+        "ponytail-audit",
+        "ponytail-debt"
+      ],
+      "phase": "/sdd-build e revisão",
+      "why": "Contra over-engineering: YAGNI, stdlib/nativo antes de dependência, menor diff que funciona; revisão e auditoria do que dá para apagar, e registro dos atalhos deliberados (comentários ponytail:).",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
       "id": "skill-creator",
       "source": "anthropics/skills",
       "skills": [
