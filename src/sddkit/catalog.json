@@ -265,6 +265,23 @@
       "recommended": true
     },
     {
+      "id": "superpowers",
+      "source": "obra/superpowers",
+      "skills": [
+        "verification-before-completion",
+        "requesting-code-review",
+        "receiving-code-review",
+        "finishing-a-development-branch",
+        "using-git-worktrees"
+      ],
+      "phase": "/sdd-build e convergência",
+      "why": "Complementos do obra/superpowers que o pipeline SDD não cobre: provar antes de declarar pronto, pedir/receber revisão com rigor, fechar a branch e isolar trabalho em worktrees. Brainstorming/planos/TDD/debugging ficam de fora (já cobertos por grill-me, Spec Kit, tdd, diagnosing-bugs).",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
       "id": "skill-creator",
       "source": "anthropics/skills",
       "skills": [
