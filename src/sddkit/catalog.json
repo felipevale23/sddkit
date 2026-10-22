@@ -82,7 +82,7 @@
       "when": {
         "has_code": true
       },
-      "recommended": false
+      "recommended": true
     },
     {
       "id": "git-guardrails-claude-code",
