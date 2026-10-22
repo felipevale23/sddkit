@@ -282,6 +282,19 @@
       "recommended": true
     },
     {
+      "id": "caveman",
+      "source": "JuliusBrussee/caveman",
+      "skills": [
+        "caveman"
+      ],
+      "phase": "sempre (estilo de resposta)",
+      "why": "Respostas telegráficas do agente para cortar tokens de saída. Muda o tom da conversa, por isso é opcional.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
+    },
+    {
       "id": "skill-creator",
       "source": "anthropics/skills",
       "skills": [
