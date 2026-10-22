@@ -396,6 +396,42 @@
       "recommended": true
     },
     {
+      "id": "ui-ux-pro-max",
+      "group": "UI",
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "skills": [
+        "ui-ux-pro-max"
+      ],
+      "phase": "/speckit-plan (design system) e /sdd-build (UI)",
+      "why": "Base de conhecimento de UI/UX consultável offline (estilos, paletas, tipografia, padrões de UX por stack) que gera um design system antes de codar telas web, mobile e desktop.",
+      "when": {
+        "stacks": [
+          "frontend",
+          "react-native",
+          "flutter",
+          "apple",
+          "desktop"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "theme-factory",
+      "group": "UI",
+      "source": "anthropics/skills",
+      "skills": [
+        "theme-factory"
+      ],
+      "phase": "/sdd-build (UI)",
+      "why": "Temas prontos (paleta + fontes) ou gerados na hora para aplicar com consistência em páginas, slides, docs e artefatos HTML.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": false
+    },
+    {
       "id": "tdd",
       "group": "Testing",
       "source": "mattpocock/skills",

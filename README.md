@@ -119,7 +119,7 @@ Três camadas — da que depende do modelo à que não depende:
 |---|---|
 | **Starting** | ★ grill-me (sempre) · grill-with-docs (sempre) · domain-modeling (sempre) · ★ improve-codebase-architecture (código existente) · planning-with-files (sempre) |
 | **Coding** | ★ ponytail (sempre) · ★ react-best-practices (react, next) · ★ react-native (react-native, expo) · ★ mcp-builder (mcp) · ★ claude-api (anthropic-sdk) · ★ cck-express (express) · ★ cck-nodejs (node) · ★ cck-prisma (prisma) · ★ cck-tailwindcss (tailwind) · ★ cck-shadcn (shadcn) · ★ cck-mui (mui) · ★ cck-tanstack-query (tanstack-query) · ★ cck-tanstack-router (tanstack-router) · cck-react (react) · cck-nextjs (next) |
-| **UI** | ★ frontend-design (frontend) · web-design-guidelines (frontend) · impeccable (frontend) · ★ apple-design (apple, react-native, flutter, desktop) |
+| **UI** | ★ frontend-design (frontend) · web-design-guidelines (frontend) · impeccable (frontend) · ★ apple-design (apple, react-native, flutter, desktop) · ★ ui-ux-pro-max (frontend, react-native, flutter, apple, desktop) · theme-factory (frontend) |
 | **Testing** | ★ tdd (sempre) · ★ diagnosing-bugs (sempre) · webapp-testing (frontend) · ★ playwright (frontend) · property-based-testing (fast-check, queue, pydantic) · cck-route-tester (backend) |
 | **Review** | ★ superpowers (sempre) · ★ spec-to-code-compliance (sempre) |
 | **Security** | ★ security-review (sempre) · ★ semgrep (sempre) · ★ security-audit (código existente) · ★ supply-chain-risk-auditor (node, python, go, rust) · ★ agentic-actions-auditor (ci) |
