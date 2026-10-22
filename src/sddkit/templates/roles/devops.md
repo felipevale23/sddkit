@@ -4,7 +4,8 @@ description: Especialista de infraestrutura e entrega. Implementa tarefas de CI/
 kind: implementer
 capabilities: [read, edit, write, shell]
 tier: fast
-skills: [setup-pre-commit, deploy-to-vercel]
+skills: [setup-pre-commit]
+skills_ondemand: [deploy-to-vercel]
 route_globs: ["**/Dockerfile*", "**/docker-compose*", "**/compose.y*ml", "**/.github/workflows/**", "**/.gitlab-ci.yml", "**/*.tf", "**/terraform/**", "**/k8s/**", "**/helm/**", "**/infra/**", "**/.env.example", "**/vercel.json", "**/fly.toml", "**/Makefile"]
 route_keywords: [ci, cd, pipeline, docker, container, deploy, infra, terraform, kubernetes, k8s, workflow, observabilidade, observability, monitoring, env]
 priority: 30

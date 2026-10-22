@@ -20,9 +20,10 @@ Ele não substitui o seu agente: ele **arruma a casa** para que qualquer agente 
 9. [Memória, skills de projeto e playbooks](#9-memória-skills-de-projeto-e-playbooks)
 10. [Segurança e commits](#10-segurança-e-commits)
 11. [O `doctor`: saúde e drift](#11-o-doctor-saúde-e-drift)
-12. [Referência de comandos](#12-referência-de-comandos)
-13. [Perguntas frequentes](#13-perguntas-frequentes)
-14. [Desenvolvendo o sddkit](#14-desenvolvendo-o-sddkit)
+12. [Economia de tokens](#12-economia-de-tokens)
+13. [Referência de comandos](#13-referência-de-comandos)
+14. [Perguntas frequentes](#14-perguntas-frequentes)
+15. [Desenvolvendo o sddkit](#15-desenvolvendo-o-sddkit)
 
 ---
 
@@ -211,7 +212,7 @@ O que acontece, na ordem:
 
 O `--mvp` constrói só a história mais importante (P1). O orquestrador:
 
-1. Divide as tarefas em **ondas**: tarefas marcadas `[P]` e sem arquivo em comum rodam **em paralelo**.
+1. Divide as tarefas em **ondas**: tarefas marcadas `[P]` e sem arquivo em comum rodam **em paralelo**. Para cada história, grava um arquivo de contexto enxuto (a história, os requisitos e o essencial do plano); cada subagent lê só ele, não `spec.md` e `plan.md` inteiros.
 2. Manda cada tarefa ao **especialista** certo: arquivo `*.test.ts` vai para `qa`, `routes/` vai para `api`, `prisma/` vai para `data`… (detalhes na [seção 7](#7-subagents-especialistas)).
 3. Na onda de testes, confere que os testes **falham** pelo motivo certo; na de implementação, que **passam**.
 4. Faz um commit por onda (`test(001): onda 1 — T004, T005 …`).
@@ -428,23 +429,23 @@ Um **subagent** é um agente com contexto limpo e um único trabalho. O orquestr
 | `sdd-converger` | depois de implementar: roda os testes e confere cada requisito no código real |
 
 ### Especialistas (`sddkit role add …`)
-| Papel | Tipo | Entra quando a tarefa toca… | Skills que carrega (se instaladas) |
-|---|---|---|---|
-| `ui` | implementa | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/` | frontend-design, vercel-react-best-practices, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
-| `api` | implementa | `api/`, `routes/`, `services/`, `*.controller.*` | claude-api, express, nodejs, solid, clean-architecture, domain-driven-design |
-| `data` | implementa | `migrations/`, `prisma/`, `*.sql`, `models/` | domain-modeling, prisma, domain-driven-design, clean-architecture |
-| `qa` | implementa | `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, playwright-skill, webapp-testing, route-tester |
-| `devops` | implementa | `Dockerfile`, `.github/workflows/`, `*.tf` | setup-pre-commit, deploy-to-vercel |
-| `docs` | implementa | `docs/`, `README`, ADRs | domain-modeling |
-| `event-module` | implementa | `modules/`, `domain/`, `events/` (lógica pura, sem IO) | property-based-testing, domain-driven-design, solid, clean-architecture |
-| `queue-worker` | implementa | `workers/`, `queues/`, `*.worker.ts` | clean-architecture, solid |
-| `bill-parser` | implementa | `parsers/`, `faturas/`, `layouts/` | — |
-| `ui-reviewer` | revisa (fim da história) | a história tocou UI | web-design-guidelines, playwright-skill, webapp-testing, apple-design, ui-ux-pro-max |
-| `security-reviewer` | revisa (convergência) | sempre, o diff da feature | differential-review, fp-check, variant-analysis |
-| `sast-scanner` | revisa (convergência) | sempre (Semgrep) | semgrep, sarif-parsing, fp-check |
-| `supply-chain-auditor` | revisa (convergência) | a feature mexeu em dependências | supply-chain-risk-auditor |
-| `actions-auditor` | revisa (convergência) | a feature mexeu em `.github/workflows` | agentic-actions-auditor |
-| `contract-reviewer` | revisa (convergência) | contratos, filas ou parsers | — |
+| Papel | Tipo | Entra quando a tarefa toca… | Pré-carrega (se instaladas) | Sob demanda |
+|---|---|---|---|---|
+| `ui` | implementa | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/` | frontend-design, vercel-react-best-practices | vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
+| `api` | implementa | `api/`, `routes/`, `services/`, `*.controller.*` | express, nodejs | claude-api, solid, clean-architecture, domain-driven-design |
+| `data` | implementa | `migrations/`, `prisma/`, `*.sql`, `models/` | domain-modeling, prisma | domain-driven-design, clean-architecture |
+| `qa` | implementa | `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, playwright-skill | webapp-testing, route-tester |
+| `devops` | implementa | `Dockerfile`, `.github/workflows/`, `*.tf` | setup-pre-commit | deploy-to-vercel |
+| `docs` | implementa | `docs/`, `README`, ADRs | domain-modeling | — |
+| `event-module` | implementa | `modules/`, `domain/`, `events/` (lógica pura, sem IO) | property-based-testing | domain-driven-design, solid, clean-architecture |
+| `queue-worker` | implementa | `workers/`, `queues/`, `*.worker.ts` | — | clean-architecture, solid |
+| `bill-parser` | implementa | `parsers/`, `faturas/`, `layouts/` | — | — |
+| `ui-reviewer` | revisa (fim da história) | a história tocou UI | web-design-guidelines, playwright-skill | webapp-testing, apple-design, ui-ux-pro-max |
+| `security-reviewer` | revisa (convergência) | sempre, o diff da feature | differential-review, fp-check | variant-analysis |
+| `sast-scanner` | revisa (convergência) | sempre (Semgrep) | semgrep, fp-check | sarif-parsing |
+| `supply-chain-auditor` | revisa (convergência) | a feature mexeu em dependências | supply-chain-risk-auditor | — |
+| `actions-auditor` | revisa (convergência) | a feature mexeu em `.github/workflows` | agentic-actions-auditor | — |
+| `contract-reviewer` | revisa (convergência) | contratos, filas ou parsers | — | — |
 
 **Como o especialista é escolhido** (`waves.py`): cada papel tem `route_globs` (arquivos) e `route_keywords` (palavras). A tarefa vai para quem pontuar mais (3× por arquivo que casa + palavras da descrição). Errou? Escreva `[@papel]` na linha da tarefa. Ninguém casou? `sdd-implementer`.
 
@@ -466,7 +467,8 @@ description: Integra cobranças PIX com idempotência e verificação de webhook
 kind: implementer                      # implementer | reviewer
 capabilities: [read, edit, write, shell]
 tier: strong                           # fast → modelo rápido · strong → modelo forte
-skills: [tdd]                          # pré-carregadas (só as instaladas)
+skills: [tdd]                          # pré-carregadas em toda tarefa (só as instaladas; no máximo 2)
+skills_ondemand: [property-based-testing]   # listadas no papel; lidas só se a tarefa pedir
 route_globs: ["**/pix/**"]
 route_keywords: [pix, cobrança, webhook]
 max_turns: 40
@@ -483,10 +485,10 @@ max_turns: 40
 | Grupo | Para quê | Skills (★ = instalada por padrão) |
 |---|---|---|
 | **Starting** | afiar ideias e entender código existente | ★ grill-me · grill-with-docs · domain-modeling · ★ improve-codebase-architecture · planning-with-files |
-| **Coding** | padrões de código e frameworks | ★ ponytail · ★ react-best-practices · ★ react-native · ★ mcp-builder · ★ claude-api · Claude Code Kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs · **paradigma, só backend:** solid, clean-architecture, domain-driven-design |
+| **Coding** | padrões de código e frameworks | ★ ponytail · ponytail-extras · ★ react-best-practices · ★ react-native · ★ mcp-builder · ★ claude-api · Claude Code Kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs · **paradigma, só backend:** solid, clean-architecture, domain-driven-design |
 | **UI** | design e interface | ★ frontend-design · web-design-guidelines · impeccable · ★ apple-design · ★ ui-ux-pro-max · theme-factory |
 | **Testing** | testes e depuração | ★ tdd · ★ diagnosing-bugs · webapp-testing · ★ playwright · property-based-testing · cck-route-tester |
-| **Review** | revisão e verificação | ★ superpowers · ★ spec-to-code-compliance |
+| **Review** | revisão e verificação | ★ superpowers · superpowers-git · ★ spec-to-code-compliance |
 | **Security** | segurança | ★ security-review · ★ semgrep · ★ security-audit · ★ supply-chain-risk-auditor · ★ agentic-actions-auditor |
 | **Workflow** | git, commits e manutenção | ★ git-guardrails-claude-code · ★ setup-pre-commit · conventional-git · ★ caveman · ★ find-skills · ★ skill-creator · deploy-to-vercel |
 
@@ -521,7 +523,7 @@ Há quatro jeitos de ensinar algo ao agente. Escolha pelo tamanho e pelo alcance
 | Camada | O que faz | Depende do modelo obedecer? |
 |---|---|---|
 | **Revisores** | `security-reviewer` (diff, falso positivo, variantes, LGPD, authz), `sast-scanner` (Semgrep), `supply-chain-auditor`, `actions-auditor` na convergência de cada feature | sim |
-| **Conformidade** | na convergência, cada requisito da spec é checado no código por um subagent e contestado por outro | sim |
+| **Conformidade** | na convergência, os requisitos da spec são checados no código em lotes de 3–5 por subagent; divergência grave (história P1, segurança, dados, dinheiro) é contestada por outro | sim |
 | **Guarda de segredos** | `.agents/hooks/guard_secrets.py` bloqueia escrita de chaves/tokens (AWS, GitHub, Anthropic, OpenAI, Slack, Stripe, Google, chave privada, URL com senha) e CPF/CNPJ válidos; no Claude Code também nega leitura de `.env*`, `*.pem`, `*.key` e chaves SSH | **não** |
 | **Commits** | `sddkit commitlint`: hook `commit-msg` com Conventional Commits e bloqueio de atribuição de IA | **não** |
 
@@ -592,7 +594,34 @@ sddkit ci --audit    # + .github/workflows/sddkit-audit.yml
 
 ---
 
-## 12. Referência de comandos
+## 12. Economia de tokens
+
+Agentes cobram por token, e muita coisa entra no contexto sem você ver. O sddkit corta nos lugares que mais pesam:
+
+| Onde | Como economiza |
+|---|---|
+| **Toda sessão** | O `AGENTS.md` lista as skills só pelo nome: as ferramentas já mostram a descrição de cada uma, e repetir custaria ~40 tokens por skill em toda conversa. Skills raras ficam fora do padrão (`ponytail-extras`, `superpowers-git`, `planning-with-files`…). |
+| **Toda tarefa de subagent** | Cada papel pré-carrega no máximo 2 skills centrais. As outras ficam numa lista "sob demanda" no papel e só são lidas se a tarefa pedir. Exemplo: o `ui` caiu de ~33 mil para ~4,5 mil tokens por tarefa com todas as skills de UI instaladas. |
+| **`/sdd-build`** | Cada tarefa recebe um arquivo de contexto da sua história, em vez de ler `spec.md` + `plan.md` inteiros. Numa feature real de 75 tarefas: ~6,5 mil → ~2,2 mil tokens por tarefa (≈ 320 mil a menos). |
+| **Conformidade spec × código** | Lotes de 3–5 requisitos por subagent; contestação só nas divergências graves. |
+| **Respostas** | `caveman` (padrão) encurta o que o agente escreve no chat, nunca os arquivos. Relatórios dos subagents têm formato curto e fixo. |
+| **Cache** | Arquivos gerados não têm data nem conteúdo variável, então o começo do contexto se repete entre sessões e o cache de prompt aproveita. |
+
+Para ver os números do seu projeto:
+
+```bash
+sddkit budget
+```
+```
+Por sessão (todo agente, toda conversa): ≈ 4.600 tokens
+  AGENTS.md ≈ 1.600 · descrições de 40 skills ≈ 3.000
+Por tarefa, em cada subagent (prompt + skills pré-carregadas):
+  ui                     ≈  4.554  (pré-carga: frontend-design 2.340, vercel-react-best-practices 1.812 · sob demanda: 11)
+  …
+```
+O `doctor` avisa quando o custo por sessão passa de 6 mil tokens ou quando algum papel pré-carrega mais de 8 mil por tarefa. A correção é mover a skill de `skills:` para `skills_ondemand:` no papel e rodar `sddkit sync`.
+
+## 13. Referência de comandos
 
 ### No terminal
 ```bash
@@ -608,6 +637,7 @@ sddkit index                                  # regenera .agents/specs/features.
 sddkit commitlint [--no-install]
 sddkit sync [--agents …] [--copy] [--check] [--force]   # regenera AGENTS.md, índice e adaptadores a partir de .agents/
 sddkit doctor [--fix]
+sddkit budget [--json]                         # tokens por sessão e por subagent
 sddkit ci [--audit] [--force]                  # workflows do GitHub: checagem a cada PR e auditoria semanal
 ```
 
@@ -625,7 +655,7 @@ sddkit ci [--audit] [--force]                  # workflows do GitHub: checagem a
 
 ---
 
-## 13. Perguntas frequentes
+## 14. Perguntas frequentes
 
 **Preciso usar Claude Code?** Não. Qualquer agente que leia `AGENTS.md` funciona. Sem suporte a subagents, o agente executa cada papel ele mesmo, em sequência.
 
@@ -645,7 +675,7 @@ sddkit ci [--audit] [--force]                  # workflows do GitHub: checagem a
 
 ---
 
-## 14. Desenvolvendo o sddkit
+## 15. Desenvolvendo o sddkit
 
 `tests/test_harness.py` monta projetos de exemplo em pastas temporárias (vazio; Node com React, Express, Prisma, Tailwind e shadcn; Python; Husky com commitlint; specs com drift no estilo de um projeto real) e roda o `sddkit` de verdade contra eles. Confere o resultado de cada comando, que rodar de novo não muda nada (`init` e `sync` são idempotentes, `doctor` não escreve) e commits reais aceitos ou recusados pelo hook.
 

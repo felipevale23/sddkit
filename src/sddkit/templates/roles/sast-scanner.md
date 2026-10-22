@@ -5,7 +5,8 @@ kind: reviewer
 review_at: converge
 capabilities: [read, shell, write]
 tier: fast
-skills: [semgrep, sarif-parsing, fp-check]
+skills: [semgrep, fp-check]
+skills_ondemand: [sarif-parsing]
 max_turns: 40
 color: red
 ---

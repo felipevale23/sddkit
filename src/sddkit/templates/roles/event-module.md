@@ -5,7 +5,8 @@ kind: implementer
 capabilities: [read, edit, write, shell]
 tier: fast
 owns_tests: true
-skills: [property-based-testing, domain-driven-design, solid, clean-architecture]
+skills: [property-based-testing]
+skills_ondemand: [domain-driven-design, solid, clean-architecture]
 route_globs: ["**/contracts/**", "**/schemas/**", "**/*.schema.ts", "**/modules/**", "**/module/**", "**/domain/**", "**/*.module.ts", "**/handlers/events/**", "**/events/**"]
 route_keywords: [contrato, contract, schema, módulo, modulo, module, evento, event, cálculo, calculo, regra, rule, rateio, compensação, compensacao]
 priority: 50

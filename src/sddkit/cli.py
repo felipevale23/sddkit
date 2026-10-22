@@ -12,7 +12,7 @@ import sys
 from importlib import resources
 from pathlib import Path
 
-from . import __version__, adapters, memory, specs
+from . import __version__, adapters, budget, memory, specs
 from . import out as outmod
 from .out import Out, sha
 from .detect import detect, matches
@@ -143,15 +143,15 @@ def write_agents_md(root: Path, out: Out) -> None:
     note = "<!-- Bloco gerado pelo sddkit: edite .agents/ e rode `sddkit sync`; edições aqui são recusadas. -->\n"
     text = out.block(text, BEGIN, END, note + (tpl() / "AGENTS.block.md").read_text(encoding="utf-8"), "AGENTS.md#sddkit")
     skills = installed_skills(root)
-    lines = [note.rstrip(), "## Skills instaladas (`.agents/skills/`)", ""]
-    spk = [n for n in skills if n.startswith("speckit-")]
-    if spk:
-        lines.append("- Spec Kit: " + ", ".join(f"`{n}`" for n in spk))
-    for name, desc in skills.items():
-        if name.startswith("speckit-"):
-            continue
-        d = re.sub(r"\s+", " ", desc)
-        lines.append(f"- `{name}` — {d[:160] + '…' if len(d) > 160 else d}")
+    # só nomes: as ferramentas que leem .agents/skills já mostram a descrição de cada skill (repetir aqui custa
+    # ~40 tokens por skill em toda sessão). Sem suporte a skills: leia .agents/skills/<nome>/SKILL.md.
+    lines = [note.rstrip(), "## Skills instaladas (`.agents/skills/<nome>/SKILL.md`)", ""]
+    groups = [("Spec Kit", [n for n in skills if n.startswith("speckit-")]),
+              ("sddkit", [n for n in skills if n.startswith("sdd-")]),
+              ("Outras", [n for n in skills if not n.startswith(("speckit-", "sdd-"))])]
+    for label, names in groups:
+        if names:
+            lines.append(f"- {label}: " + ", ".join(f"`{n}`" for n in names))
     if not skills:
         lines.append("- (nenhuma)")
     lines += ["", "## Papéis de subagent (`.agents/agents/`)", "",
@@ -670,6 +670,18 @@ def cmd_playbook(args) -> int:
     return 0
 
 
+def cmd_budget(args) -> int:
+    root = Path(args.dir).resolve()
+    r = budget.report(root)
+    if args.json:
+        say(json.dumps(r, ensure_ascii=False, indent=2))
+        return 0
+    say(f"sddkit budget — {root}  (≈ caracteres/4)\n")
+    for line in budget.render(r):
+        say(line)
+    return 0 if all(ok for ok, *_ in budget.checks(r)) else 1
+
+
 SDDKIT_SOURCE = f"git+https://github.com/felipevale23/sddkit@v{__version__}"  # CI fixa a versão que gerou o workflow
 
 
@@ -863,6 +875,12 @@ def cmd_doctor(args) -> int:
         say(f"  · {len(edited)} template(s) editado(s) localmente (versão nova não aplicada): {', '.join(edited[:5])}"
             + (" …" if len(edited) > 5 else "") + " — compare e use `sddkit init --force-templates` se quiser a versão nova")
 
+    say("\nTokens:")
+    for ok, msg, fix, details in budget.checks(budget.report(root)):
+        check(ok, msg, fix)
+        for d in details[:8]:
+            say(f"      · {d}")
+
     say("\nSpecs (drift):")
     for ok, msg, fix, details in specs.drift_checks(root, info):
         check(ok, msg, fix)
@@ -950,6 +968,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("dir", nargs="?", default=".")
     p.add_argument("--no-install", action="store_true", help="não instala @commitlint/* (só cria config e hook)")
     p.set_defaults(fn=cmd_commitlint)
+
+    p = sub.add_parser("budget", help="tokens por sessão e por subagent (pré-carga de skills)")
+    p.add_argument("dir", nargs="?", default=".")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_budget)
 
     p = sub.add_parser("ci", help="workflows do GitHub: sync --check + doctor a cada PR; --audit: /sdd-audit semanal com o Claude Code")
     p.add_argument("dir", nargs="?", default=".")

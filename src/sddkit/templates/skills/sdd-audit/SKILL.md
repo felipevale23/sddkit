@@ -34,7 +34,7 @@ Ferramenta ausente não é falha: registre "não executado" com o comando de ins
 
 ## 3. Conformidade spec × código (features implementadas)
 Para cada feature com status `Implemented` ou `In Progress` em `.agents/specs/features.md` (ou as de `--features`), começando pelas que nunca foram auditadas ou foram há mais tempo (veja o relatório anterior), máx. 3 por rodada:
-- Se `.agents/skills/spec-to-code-compliance/` existir, siga o método da seção "Conformidade spec × código" de `.agents/skills/sdd-build/SKILL.md`: um subagent somente leitura por FR/SC e um segundo, independente, tentando refutar cada veredito diferente de `implemented`.
+- Se `.agents/skills/spec-to-code-compliance/` existir, siga o método da seção "Conformidade spec × código" de `.agents/skills/sdd-build/SKILL.md`: lotes de 3–5 FR/SC por subagent somente leitura e contestação só dos vereditos graves.
 - Senão, um subagent somente leitura por feature conferindo cada FR/SC no código (caminho:linha).
 
 ## 4. Contestação (falso positivo)

@@ -5,7 +5,8 @@ kind: reviewer
 review_at: story
 capabilities: [read, shell, write]
 tier: strong
-skills: [web-design-guidelines, playwright-skill, webapp-testing, apple-design, ui-ux-pro-max]
+skills: [web-design-guidelines, playwright-skill]
+skills_ondemand: [webapp-testing, apple-design, ui-ux-pro-max]
 route_globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.astro", "**/*.css", "**/*.scss", "**/*.html", "**/components/**", "**/pages/**", "**/app/**/page.*", "**/screens/**", "**/views/**", "**/ui/**"]
 max_turns: 40
 color: pink

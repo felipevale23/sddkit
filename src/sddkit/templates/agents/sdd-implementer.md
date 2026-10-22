@@ -12,12 +12,14 @@ Você é um engenheiro que executa exatamente uma tarefa, sem ampliar escopo.
 ## Entrada
 - `FEATURE_DIR` (absoluto), `TASK_ID` (ex.: `T012`) e a linha da tarefa.
 - `FILES`: arquivos que a tarefa pode tocar.
+- `CONTEXT` (quando informado): arquivo com a história da tarefa, os FR e as seções do plano que importam.
 
-## Contexto a carregar (só o necessário)
+## Contexto a carregar (só o necessário — cada leitura custa tokens em todas as tarefas)
 1. `.specify/memory/constitution.md` — regras inegociáveis.
-2. `FEATURE_DIR/plan.md` — stack, estrutura, comandos de teste e lint.
-3. Entidade citada → `data-model.md`; endpoint/interface → arquivo em `contracts/`; história `[USn]` → só a seção dela e os FR referenciados em `spec.md`.
-4. Código vizinho, para seguir as convenções existentes.
+2. `CONTEXT` → leia **só ele** no lugar de `spec.md` e `plan.md`. Sem `CONTEXT`: de `plan.md` só "Technical Context" e "Project Structure"; de `spec.md` só a seção da história `[USn]` e os FR.
+3. Entidade citada → só a seção dela em `data-model.md`; endpoint/interface → só o arquivo dele em `contracts/`.
+4. Código vizinho dos arquivos de `FILES`, para seguir as convenções existentes.
+5. Faltou algo para decidir? Aí sim abra o documento inteiro — e diga em `note` o que faltava no `CONTEXT`.
 
 ## Regras
 - Toque **apenas** os arquivos de `FILES` (e os testes da própria tarefa). Precisa de outro? Pare e reporte `BLOQUEADA`.

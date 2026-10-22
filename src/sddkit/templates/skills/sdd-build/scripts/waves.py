@@ -21,8 +21,14 @@ Roteamento (campo "agent" de cada tarefa):
 - Papéis com `kind: reviewer` aparecem em "reviews": por história, quais
   revisores devem rodar (algum arquivo casou os globs) — ou `review_at: converge`.
 
+Contexto por tarefa (economia de tokens): grava em FEATURE_DIR/.context/ um arquivo por história
+(`US1.md`…) e um `base.md` para tarefas sem história, com só o que o implementador precisa — a seção
+da história em spec.md, as linhas FR-xxx e as seções "Technical Context" e "Project Structure" de
+plan.md. Cada tarefa sai com `context`: o caminho do arquivo. O subagent lê esse arquivo em vez de
+spec.md e plan.md inteiros. `--no-context` desliga.
+
 Uso:
-  waves.py <tasks.md> [--mvp] [--phase N] [--max-parallel K] [--agents-dir DIR]
+  waves.py <tasks.md> [--mvp] [--phase N] [--max-parallel K] [--agents-dir DIR] [--no-context]
 Saída: JSON em stdout.
 """
 from __future__ import annotations
@@ -193,6 +199,49 @@ def build_waves(phases: list[dict], max_parallel: int) -> list[dict]:
     return waves
 
 
+def _section(text: str, heading: str) -> str:
+    """Do título `heading` (regex) até o próximo título do mesmo nível ou maior, fora de blocos de código."""
+    lines, start, level, fence = text.splitlines(), None, 0, False
+    for i, ln in enumerate(lines):
+        if ln.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        m = None if fence else re.match(r"(#+)\s+(.*)$", ln)
+        if not m:
+            continue
+        if start is None:
+            if re.match(heading, m.group(2)):
+                start, level = i, len(m.group(1))
+        elif len(m.group(1)) <= level:
+            return "\n".join(lines[start:i]).strip()
+    return "\n".join(lines[start:]).strip() if start is not None else ""
+
+
+def write_context(feature_dir: Path, stories: set[str | None]) -> dict[str | None, str]:
+    """Arquivos de contexto por história; devolve {história: caminho}."""
+    spec = (feature_dir / "spec.md").read_text(encoding="utf-8") if (feature_dir / "spec.md").exists() else ""
+    plan = (feature_dir / "plan.md").read_text(encoding="utf-8") if (feature_dir / "plan.md").exists() else ""
+    if not (spec or plan):
+        return {}
+    frs = "\n".join(ln for ln in spec.splitlines() if re.search(r"\bFR-\d+", ln) and ln.lstrip().startswith(("-", "*")))
+    common = [_section(plan, "Technical Context"), _section(plan, "Project Structure")]
+    out_dir = feature_dir / ".context"
+    out_dir.mkdir(exist_ok=True)
+    (out_dir / ".gitignore").write_text("*\n", encoding="utf-8")
+    paths: dict[str | None, str] = {}
+    for st in stories:
+        parts = ["# Contexto da tarefa (gerado por waves.py; leia isto em vez de spec.md/plan.md inteiros)"]
+        if st:
+            parts.append(_section(spec, rf"User Story {st[2:]}\b") or f"(história {st} não encontrada em spec.md)")
+        if frs:
+            parts.append("## Requisitos funcionais (spec.md)\n" + frs)
+        parts += [c for c in common if c]
+        f = out_dir / f"{st or 'base'}.md"
+        f.write_text("\n\n".join(parts) + "\n", encoding="utf-8")
+        paths[st] = str(f)
+    return paths
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("tasks_md", type=Path)
@@ -200,6 +249,7 @@ def main() -> int:
     ap.add_argument("--phase", type=int, help="somente a fase N")
     ap.add_argument("--max-parallel", type=int, default=4)
     ap.add_argument("--agents-dir", type=Path, help="padrão: .agents/agents do repositório")
+    ap.add_argument("--no-context", action="store_true", help="não grava os arquivos de contexto por história")
     a = ap.parse_args()
     if not a.tasks_md.is_file():
         print(json.dumps({"error": f"não encontrado: {a.tasks_md}"}))
@@ -219,6 +269,10 @@ def main() -> int:
             if not t.get("barrier"):
                 t["agent"], t["routed_by"] = route(t, roles, t["in_tests"])
     waves = build_waves(scope, a.max_parallel)
+    ctx = {} if a.no_context else write_context(a.tasks_md.resolve().parent, {t["story"] for w in waves for t in w["tasks"]})
+    for w in waves:
+        for t in w["tasks"]:
+            t["context"] = ctx.get(t["story"])
 
     reviews = []
     scoped = [t for p in scope for t in p["tasks"] if not t.get("barrier")]
@@ -241,7 +295,7 @@ def main() -> int:
         "open_in_scope": sum(len(w["tasks"]) for w in waves),
         "waves": [
             {"wave": w["wave"], "phase": w["phase"], "parallel": w["parallel"],
-             "tasks": [{k: t[k] for k in ("id", "agent", "routed_by", "story", "files", "desc")} for t in w["tasks"]]}
+             "tasks": [{k: t[k] for k in ("id", "agent", "routed_by", "story", "files", "desc", "context")} for t in w["tasks"]]}
             for w in waves
         ],
         "agents_dir": str(agents_dir) if agents_dir else None,

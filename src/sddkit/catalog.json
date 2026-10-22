@@ -90,9 +90,7 @@
       "source": "DietrichGebert/ponytail",
       "skills": [
         "ponytail",
-        "ponytail-review",
-        "ponytail-audit",
-        "ponytail-debt"
+        "ponytail-review"
       ],
       "phase": "/sdd-build e revisão",
       "why": "Contra over-engineering: YAGNI, stdlib/nativo antes de dependência, menor diff que funciona; revisão e auditoria do que dá para apagar, e registro dos atalhos deliberados (comentários ponytail:).",
@@ -100,6 +98,21 @@
         "always": true
       },
       "recommended": true
+    },
+    {
+      "id": "ponytail-extras",
+      "group": "Coding",
+      "source": "DietrichGebert/ponytail",
+      "skills": [
+        "ponytail-audit",
+        "ponytail-debt"
+      ],
+      "phase": "manutenção",
+      "why": "Auditoria de over-engineering do repositório inteiro e registro dos atalhos deliberados (comentários ponytail:). Relatórios avulsos: opcionais para não pesar em toda sessão.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
     },
     {
       "id": "react-best-practices",
@@ -580,17 +593,30 @@
       "source": "obra/superpowers",
       "skills": [
         "verification-before-completion",
-        "requesting-code-review",
-        "receiving-code-review",
-        "finishing-a-development-branch",
-        "using-git-worktrees"
+        "receiving-code-review"
       ],
       "phase": "/sdd-build e convergência",
-      "why": "Complementos do obra/superpowers que o pipeline SDD não cobre: provar antes de declarar pronto, pedir/receber revisão com rigor, fechar a branch e isolar trabalho em worktrees. Brainstorming/planos/TDD/debugging ficam de fora (já cobertos por grill-me, Spec Kit, tdd, diagnosing-bugs).",
+      "why": "Do obra/superpowers, só o que o fluxo SDD não cobre: provar antes de declarar pronto e receber revisão com rigor. Brainstorming/planos/TDD/debugging ficam de fora (já cobertos por grill-me, Spec Kit, tdd, diagnosing-bugs); git/worktrees/pedir revisão estão em superpowers-git.",
       "when": {
         "always": true
       },
       "recommended": true
+    },
+    {
+      "id": "superpowers-git",
+      "group": "Review",
+      "source": "obra/superpowers",
+      "skills": [
+        "requesting-code-review",
+        "finishing-a-development-branch",
+        "using-git-worktrees"
+      ],
+      "phase": "depois da convergência",
+      "why": "Pedir revisão, isolar trabalho em worktrees e fechar a branch. Opcional: dentro do /sdd-build a revisão vem dos revisores do sddkit.",
+      "when": {
+        "always": true
+      },
+      "recommended": false
     },
     {
       "id": "spec-to-code-compliance",

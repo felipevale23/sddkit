@@ -261,8 +261,10 @@ def test_paradigm_skills_only_for_backend_code():
         (back / ".agents/skills" / name / "SKILL.md").write_text(f"---\nname: {name}\ndescription: x\n---\n")
     sdd(back, "role", "add", "api", "ui", "--no-skills")
     sdd(back, "sync")
-    assert "solid" in frontmatter_skills((back / ".claude/agents/api.md").read_text())
-    assert "solid" not in frontmatter_skills((back / ".claude/agents/ui.md").read_text())
+    api, ui = (back / ".claude/agents/api.md").read_text(), (back / ".claude/agents/ui.md").read_text()
+    assert "- `solid` —" in api and "solid" not in frontmatter_skills(api)   # backend: sob demanda
+    assert "solid" not in ui                                                 # frontend: nunca
+    assert frontmatter_skills(ui) == ["frontend-design"]
     # o que o /sdd-stack grava: escopo global + regra só nas pastas de backend
     sdd(back, "memory", "add", "Paradigma OOP/SOLID só no backend (server/**)", "-t", "paradigma")
     sdd(back, "memory", "add", "Entidades protegem as próprias invariantes", "-t", "paradigma-backend", "--paths", "server/**")
@@ -281,7 +283,9 @@ def test_role_preloads_only_installed_skills():
     sdd(root, "role", "add", "ui", "--no-skills")
     sdd(root, "sync")
     ui = (root / ".claude/agents/ui.md").read_text()
-    assert frontmatter_skills(ui) == ["tailwindcss"], frontmatter_skills(ui)
+    assert frontmatter_skills(ui) == [], frontmatter_skills(ui)         # tailwindcss é sob demanda: não pré-carrega
+    assert "## Skills sob demanda" in ui and "- `tailwindcss` — x" in ui
+    assert "`shadcn`" not in ui                                          # não instalada: não aparece
     assert "disallowedTools: Agent" in ui                            # papéis não criam subagents
 
 
@@ -376,6 +380,53 @@ def test_doctor_clean_after_index_on_fresh_project():
     drift = sdd(root, "doctor", ok=False).stdout.split("Specs (drift):")[1]
     failed = [ln for ln in drift.splitlines() if ln.strip().startswith("✗")]
     assert len(failed) == 1 and "docs centrais preenchidos" in failed[0], failed
+
+
+# ───────────────────────── tokens ─────────────────────────
+def _fake_skill(root: Path, name: str, desc: str, body_chars: int) -> None:
+    d = root / ".agents/skills" / name
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "SKILL.md").write_text(f"---\nname: {name}\ndescription: {desc}\n---\n" + "x" * body_chars + "\n")
+
+
+def test_budget_lean_preload_and_names_only_agents_md():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    _fake_skill(root, "frontend-design", "DESCRICAO-LONGA-DO-FRONTEND", 8000)
+    _fake_skill(root, "tailwindcss", "estilo com tailwind", 40000)          # 10k tokens: só sob demanda
+    sdd(root, "role", "add", "ui", "--no-skills")
+    sdd(root, "sync")
+    assert "DESCRICAO-LONGA-DO-FRONTEND" not in (root / "AGENTS.md").read_text()   # só nomes no AGENTS.md
+    assert "`frontend-design`" in (root / "AGENTS.md").read_text()
+    r = json.loads(sdd(root, "budget", "--json").stdout)
+    ui = next(x for x in r["roles"] if x["role"] == "ui")
+    assert list(ui["preload"]) == ["frontend-design"] and ui["ondemand"] == ["tailwindcss"]
+    assert ui["total"] < 4000                                               # sem os 10k do tailwindcss
+    assert r["session"]["skills"] == len(list((root / ".agents/skills").glob("*/SKILL.md")))
+    text = sdd(root, "budget").stdout
+    assert "Por sessão" in text and "ui" in text
+    (root / ".agents/agents/ui.md").write_text((root / ".agents/agents/ui.md").read_text()
+                                              .replace("skills: [frontend-design,", "skills: [tailwindcss, frontend-design,"))
+    assert "⚠" in sdd(root, "budget", ok=False).stdout                       # passou do limite por tarefa
+    assert "pré-carga dos subagents" in sdd(root, "doctor", ok=False).stdout
+
+
+def test_waves_writes_story_scoped_context():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    f = root / ".agents/specs/features/001-x"
+    f.mkdir(parents=True)
+    (f / "spec.md").write_text("# Feature Specification: X\n\n## User Scenarios\n\n### User Story 1 - Pagar (Priority: P1)\nPAGAR-HISTORIA\n\n"
+                               "### User Story 2 - Estornar (Priority: P2)\nESTORNO-HISTORIA\n\n## Requirements\n- **FR-001**: System MUST pagar\n")
+    (f / "plan.md").write_text("# Plan\n\n## Summary\nRESUMO-LONGO\n\n## Technical Context\nNode 22\n\n## Project Structure\n```text\n# Option 1\nsrc/\n```\n\n## Complexity Tracking\nNADA\n")
+    (f / "tasks.md").write_text("## Phase 3: US1\n- [ ] T010 [US1] Pagar em src/pay.ts\n\n## Phase 4: US2\n- [ ] T020 [US2] Estornar em src/refund.ts\n")
+    out = subprocess.run([sys.executable, str(root / ".agents/skills/sdd-build/scripts/waves.py"), str(f / "tasks.md")],
+                         cwd=root, capture_output=True, text=True, check=True).stdout
+    ctx = {t["id"]: t["context"] for w in json.loads(out)["waves"] for t in w["tasks"]}
+    us1 = Path(ctx["T010"]).read_text()
+    assert "PAGAR-HISTORIA" in us1 and "ESTORNO-HISTORIA" not in us1 and "FR-001" in us1
+    assert "Node 22" in us1 and "src/" in us1 and "RESUMO-LONGO" not in us1 and "NADA" not in us1  # regressão: "# Option 1" no bloco não corta a seção
+    assert (f / ".context/.gitignore").read_text() == "*\n"
 
 
 # ───────────────────────── auditoria / CI ─────────────────────────

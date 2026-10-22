@@ -5,7 +5,8 @@ kind: reviewer
 review_at: converge
 capabilities: [read, shell, write]
 tier: strong
-skills: [differential-review, fp-check, variant-analysis]
+skills: [differential-review, fp-check]
+skills_ondemand: [variant-analysis]
 max_turns: 60
 color: red
 ---

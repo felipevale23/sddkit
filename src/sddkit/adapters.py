@@ -108,6 +108,20 @@ generated_prev: set[str] = set()
 OUT: Out  # definido por run()
 
 
+def _ondemand(root: Path, meta: dict) -> str:
+    """Seção 'skills sob demanda': só as instaladas, com 1 linha cada (o corpo só é lido se a tarefa pedir)."""
+    lines = []
+    for name in _as_list(meta.get("skills_ondemand")):
+        f = root / ".agents" / "skills" / name / "SKILL.md"
+        if f.exists():
+            desc = " ".join(str(parse(f.read_text(encoding="utf-8"))[0].get("description", "")).split())
+            lines.append(f"- `{name}` — {desc[:110] + '…' if len(desc) > 110 else desc}")
+    if not lines:
+        return ""
+    return ("\n## Skills sob demanda\nNão estão pré-carregadas (economia de tokens). Leia `.agents/skills/<nome>/SKILL.md` "
+            "**só** se a tarefa tocar o tema:\n" + "\n".join(lines) + "\n")
+
+
 def claude(root: Path, mode: str, generated: list[str]) -> list[str]:
     log = []
     skills_src = root / ".agents" / "skills"
@@ -134,7 +148,7 @@ def claude(root: Path, mode: str, generated: list[str]) -> list[str]:
               "disallowedTools": "Agent", "model": model, "effort": effort,
               "skills": [x for x in _as_list(m.get("skills")) if x in have_skills] or None,
               "maxTurns": m.get("max_turns"), "color": m.get("color")}
-        text = "---\n" + dump_yaml(fm) + "---\n" + GEN_NOTE.format(name=m["name"]) + "\n\n" + role["body"]
+        text = "---\n" + dump_yaml(fm) + "---\n" + GEN_NOTE.format(name=m["name"]) + "\n\n" + role["body"] + _ondemand(root, m)
         _write(root / ".claude" / "agents" / f"{m['name']}.md", text, generated, root)
     log.append(f".claude/agents: {len(load_roles(root))} subagents")
 
@@ -189,7 +203,7 @@ def opencode(root: Path, mode: str, generated: list[str]) -> list[str]:
                              "bash": "allow" if "shell" in caps else "deny",
                              "webfetch": "allow" if "web" in caps else "deny"},
               "steps": m.get("max_turns")}
-        text = "---\n" + dump_yaml(fm) + "---\n" + GEN_NOTE.format(name=m["name"]) + "\n\n" + role["body"]
+        text = "---\n" + dump_yaml(fm) + "---\n" + GEN_NOTE.format(name=m["name"]) + "\n\n" + role["body"] + _ondemand(root, m)
         _write(root / ".opencode" / "agents" / f"{m['name']}.md", text, generated, root)
     return [f".opencode/agents: {len(roles)} subagents"]
 

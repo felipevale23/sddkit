@@ -4,7 +4,8 @@ description: Especialista em workers TypeScript de fila (BullMQ). Implementa con
 kind: implementer
 capabilities: [read, edit, write, shell]
 tier: fast
-skills: [clean-architecture, solid]
+skills: []
+skills_ondemand: [clean-architecture, solid]
 owns_tests: true
 route_globs: ["**/workers/**", "**/queues/**", "**/processors/**", "**/*.worker.ts", "**/*.worker.*.ts", "**/*.job.ts", "**/*.queue.ts", "**/*.processor.ts"]
 route_keywords: [bullmq, fila, queue, worker, job, consumer, consumidor, retry, backoff, dead-letter, dlq]

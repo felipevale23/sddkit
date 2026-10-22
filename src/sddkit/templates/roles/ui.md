@@ -4,7 +4,8 @@ description: Especialista de interface. Implementa tarefas de UI do tasks.md (co
 kind: implementer
 capabilities: [read, edit, write, shell]
 tier: strong
-skills: [frontend-design, vercel-react-best-practices, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router]
+skills: [frontend-design, vercel-react-best-practices]
+skills_ondemand: [vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router]
 route_globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.astro", "**/*.css", "**/*.scss", "**/*.html", "**/components/**", "**/pages/**", "**/app/**/page.*", "**/app/**/layout.*", "**/screens/**", "**/views/**", "**/ui/**", "**/styles/**"]
 route_keywords: [ui, tela, página, page, componente, component, layout, formulário, form, modal, botão, button, estilo, style, responsivo, responsive, dashboard, view, screen]
 priority: 50
