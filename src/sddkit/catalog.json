@@ -85,6 +85,19 @@
       "recommended": false
     },
     {
+      "id": "git-guardrails-claude-code",
+      "source": "mattpocock/skills",
+      "skills": [
+        "git-guardrails-claude-code"
+      ],
+      "phase": "setup",
+      "why": "Hook PreToolUse do Claude Code que bloqueia git destrutivo (push, reset --hard, clean -f, branch -D, checkout/restore .) antes de executar.",
+      "when": {
+        "always": true
+      },
+      "recommended": true
+    },
+    {
       "id": "setup-pre-commit",
       "source": "mattpocock/skills",
       "skills": [
