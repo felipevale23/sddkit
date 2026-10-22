@@ -176,3 +176,15 @@ Três camadas — da que depende do modelo à que não depende:
 /sdd-build --mvp
 /sdd-change Fatura passa a aceitar parcelamento   # Tipo B → CR, aprovação, spec, código, CHANGELOG
 ```
+
+## Desenvolvimento: harness de bugs
+`tests/test_harness.py` cria projetos de exemplo em pastas temporárias (vazio, Node com React/Express/Prisma/Tailwind/shadcn, Python, Husky com commitlint já configurado, specs no estilo photon com drift) e roda o `sddkit` de verdade contra eles. Confere:
+- o resultado de cada comando;
+- que rodar de novo não muda nada (`init` e `sync` são idempotentes, `doctor` não escreve);
+- commits reais aceitos ou recusados pelo hook.
+
+```bash
+python -m pytest tests -q                 # offline, ~3 s (também roda no CI a cada push)
+SDDKIT_E2E=1 python -m pytest tests -q    # + Spec Kit, npx skills e npm commitlint de verdade
+```
+Todo bug achado vira um caso marcado com `regressão:` no teste. Para conferir que o teste pega o bug, reintroduza o defeito e veja o teste falhar.

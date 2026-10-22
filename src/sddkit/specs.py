@@ -94,16 +94,16 @@ def load_features(root: Path) -> list[dict]:
 
 
 def _feature_of(change: dict, features: list[dict]) -> str:
-    v = change.get("feature", "")
-    v = f"{v:03d}" if isinstance(v, int) else str(v).strip()  # `feature: 001` vira int no YAML
-    for f in features:
-        if v and (v == f["id"] or v == f["dir"].name):
+    v = str(change.get("feature", "")).strip()
+    for f in features:  # `feature: 001` chega como "1" do parser YAML: compare como número
+        if v and (v == f["dir"].name or v == f["id"] or (v.isdigit() and f["id"].isdigit() and int(v) == int(f["id"]))):
             return f["id"]
     return v or "—"
 
 
 def render_index(root: Path) -> str:
-    feats, changes = load_features(root), load_changes(root)
+    feats = load_features(root)
+    changes = sorted(load_changes(root), key=lambda c: (c["num"] is None, c["num"] or 0))
     by_feat: dict[str, list[str]] = {}
     for c in changes:
         by_feat.setdefault(_feature_of(c, feats), []).append(str(c.get("id", "?")))
@@ -115,7 +115,7 @@ def render_index(root: Path) -> str:
     if not feats:
         lines.append("| — | (nenhuma feature ainda: `/sdd-feature`) | | | | |")
     lines += ["", "## Change requests", "", "| ID | Título | Status | Feature | Data |", "|---|---|---|---|---|"]
-    for c in sorted(changes, key=lambda c: (c["num"] is None, c["num"] or 0)):
+    for c in changes:
         lines.append(f"| [{c.get('id', '?')}](changes/{c['file'].name}) | {c.get('title', c['file'].stem)} | "
                      f"{c.get('status', '?')} | {_feature_of(c, feats)} | {c.get('createdAt', '')} |")
     if not changes:
@@ -193,6 +193,8 @@ def broken_refs(root: Path, doc: Path, tracked: list[str] | None = None) -> list
     bad = []
     for t in dict.fromkeys(_refs(doc.read_text(encoding="utf-8"))):
         anchored, rel = t.startswith("/"), t.lstrip("/").removeprefix("./")
+        if rel.startswith((".specify/", "memory/")) and not (root / ".specify").is_dir():
+            continue  # Spec Kit ausente já é pendência própria do doctor
         has_ext = re.search(FILE_EXT, rel) is not None
         first_is_dir = (root / rel.split("/")[0]).is_dir()
         if "/" not in rel:
