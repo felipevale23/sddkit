@@ -428,14 +428,30 @@
       "skills": [
         "impeccable"
       ],
-      "phase": "/sdd-build (UI) e revisão de UI",
-      "why": "Linguagem de design para UI: hierarquia, tipografia, cor, movimento, acessibilidade, responsivo e estados de borda; também critica, audita e documenta o design system (DESIGN.md, tokens). ⚠ Baixa um binário nativo dos releases do GitHub do autor para ~/.impeccable (sha256 vem do mesmo lugar) e pode instalar hooks nas configs do agente.",
+      "phase": "/sdd-build (UI): validador do ui e do ui-reviewer",
+      "why": "Validador de UI: `impeccable detect` (62 regras determinísticas, sem LLM) no código e na página renderizada — contraste, overflow, texto minúsculo, imagens quebradas, deriva do design system e os vícios de UI gerada; mais audit/critique/polish. O ui roda o detector antes de entregar; o ui-reviewer o usa como portão e transforma os achados em tarefas [@ui]. ⚠ Baixa um binário nativo dos releases do GitHub do autor para ~/.impeccable (sha256 vem do mesmo lugar); `/impeccable hooks on` instala hooks nas configs do agente (o kit não liga).",
       "when": {
         "stacks": [
           "frontend"
         ]
       },
-      "recommended": false
+      "recommended": true
+    },
+    {
+      "id": "taste-skill",
+      "group": "UI",
+      "source": "Leonxlnx/taste-skill",
+      "skills": [
+        "design-taste-frontend"
+      ],
+      "phase": "/speckit-plan (direção visual) e /sdd-build (UI)",
+      "why": "Direção de arte anti-\"cara de IA\" para páginas públicas (landing, marketing, portfólio) e telas de app: sorteia direções pesquisadas (tipo, paleta, composição), regras da casa e um inspetor em navegador real (lint.mjs/inspect.mjs). Sobrepõe frontend-design; no kit, a direção é decidida uma vez (plan.md/design-system.md) e o ui usa `--keep palette,type`. ⚠ Scripts Node 22+ abrem Chrome headless local (CDP); assets.mjs busca imagens em acervos abertos (Openverse, Wikimedia, Met, NASA…); grava histórico em ~/.taste-skill e arquivos em .taste-skill/.",
+      "when": {
+        "stacks": [
+          "frontend"
+        ]
+      },
+      "recommended": true
     },
     {
       "id": "apple-design",
@@ -472,6 +488,22 @@
           "flutter",
           "apple",
           "desktop"
+        ]
+      },
+      "recommended": true
+    },
+    {
+      "id": "threejs-animation",
+      "group": "UI",
+      "source": "CloudAI-X/threejs-skills",
+      "skills": [
+        "threejs-animation"
+      ],
+      "phase": "/sdd-build (UI 3D)",
+      "why": "Animação em three.js: AnimationMixer, clips/keyframes, skinning, morph targets, blending e loop de render. Só texto. O repositório tem mais 12 (fundamentals, react-three-fiber, performance…): `sddkit add CloudAI-X/threejs-skills@<skill>`.",
+      "when": {
+        "stacks": [
+          "threejs"
         ]
       },
       "recommended": true
@@ -837,7 +869,10 @@
         "cck-shadcn",
         "cck-mui",
         "cck-tanstack-query",
-        "cck-tanstack-router"
+        "cck-tanstack-router",
+        "impeccable",
+        "taste-skill",
+        "threejs-animation"
       ]
     },
     {
@@ -852,8 +887,9 @@
       },
       "recommended": true,
       "skills": [
-        "web-design-guidelines",
+        "impeccable",
         "playwright",
+        "web-design-guidelines",
         "apple-design"
       ]
     },

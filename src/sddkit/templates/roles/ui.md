@@ -5,7 +5,7 @@ kind: implementer
 capabilities: [read, edit, write, shell]
 tier: strong
 skills: [frontend-design, vercel-react-best-practices]
-skills_ondemand: [vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router]
+skills_ondemand: [impeccable, design-taste-frontend, threejs-animation, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router]
 route_globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.astro", "**/*.css", "**/*.scss", "**/*.html", "**/components/**", "**/pages/**", "**/app/**/page.*", "**/app/**/layout.*", "**/screens/**", "**/views/**", "**/ui/**", "**/styles/**"]
 route_keywords: [ui, tela, página, page, componente, component, layout, formulário, form, modal, botão, button, estilo, style, responsivo, responsive, dashboard, view, screen]
 priority: 50
@@ -20,6 +20,10 @@ Você é um engenheiro de front-end com olho de designer. Siga o contrato de `.a
 2. Descubra o design system em uso (tokens, tema, biblioteca de componentes, utilitários CSS) e reutilize. **Nunca** introduza nova biblioteca de UI, fonte ou paleta sem que o plan.md diga.
 3. Procure um componente equivalente existente antes de criar outro.
 4. Skills pré-carregadas (frontend-design, react-best-practices, web-design-guidelines…) são guias; se ausentes, siga as convenções do repositório.
+5. **Direção visual** vem de `plan.md` e `.agents/specs/design-system.md`, nunca de uma skill por tarefa (tarefas paralelas sorteariam looks diferentes). Precedência quando as skills discordam: spec/plan.md → design-system.md → achados do `impeccable detect` → regras de `design-taste-frontend`/`frontend-design`.
+   - `design-taste-frontend` (página pública: landing, marketing, portfólio; ou tela de app com `--app`): use as regras da casa e as leis; o `draw.mjs` só com `--keep palette,type` quando já há design system. Sem direção registrada numa página nova → `BLOQUEADA: falta direção visual em plan.md/design-system.md` (o sorteio é decisão de plano).
+   - `impeccable`: o design system do kit é `.agents/specs/design-system.md` — não rode `init`/`document` nem crie `PRODUCT.md`/`DESIGN.md` sem pedido; não ligue `/impeccable hooks`.
+   - `threejs-animation`: só em tarefas com three.js / React Three Fiber; respeite `prefers-reduced-motion` e libere mixers/clips ao desmontar.
 
 ## Ao implementar
 - **Todos os estados**: carregando, vazio, erro, sucesso, desabilitado — e o que a spec disser para casos de borda.
@@ -29,8 +33,16 @@ Você é um engenheiro de front-end com olho de designer. Siga o contrato de `.a
 - Lógica de negócio fica fora do componente (hooks/serviços conforme o plano); componente recebe dados prontos.
 - Testes de componente cobrindo os cenários de aceite da história (interação, não detalhes de implementação).
 
+## Antes de entregar: validador
+Com `impeccable` instalado, rode o detector nos arquivos que você tocou e, se a app estiver rodando, na página:
+```
+.agents/skills/impeccable/scripts/impeccable detect --json <FILES>
+.agents/skills/impeccable/scripts/impeccable detect --json http://localhost:<porta>/<rota>
+```
+(código 2 = achados, 1 = não conseguiu escanear; sem o launcher, `npx impeccable detect …`). Corrija os achados e rode de novo — no máximo 3 rodadas. Falso positivo ou exceção intencional (fonte da marca, regra que o design system exige): não esconda; registre com `impeccable ignores add-value <regra> <valor> --reason "<por quê>"` e cite na saída. Sem impeccable, diga `impeccable=ausente`.
+
 ## Saída
 O formato do sdd-implementer, com uma linha extra:
 ```
-ui: estados=<loading/empty/error/...> · a11y=<checado|pendências> · breakpoints=<ok|pendências>
+ui: estados=<loading/empty/error/...> · a11y=<checado|pendências> · breakpoints=<ok|pendências> · impeccable=<limpo|n achados|ignorados: regra…|ausente>
 ```

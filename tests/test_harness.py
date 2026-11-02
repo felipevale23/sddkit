@@ -229,6 +229,25 @@ def test_suggest_groups_tiers_and_stack_filter():
     assert not any(i.startswith("cck-") and i != "cck-route-tester" for i in py_ids)
 
 
+def test_ui_validator_and_threejs_scope():
+    three = project({"package.json": json.dumps({"dependencies": {"react": "19", "three": "0.170"}})})
+    plain = project({"package.json": json.dumps({"dependencies": {"react": "19"}})})
+    sk = {s["id"]: s for s in json.loads(sdd(three, "suggest", "--json").stdout)["skills"]}
+    assert {"impeccable", "taste-skill", "threejs-animation"} <= set(sk)
+    assert all(sk[i]["recommended"] for i in ("impeccable", "taste-skill", "threejs-animation"))
+    assert "threejs-animation" not in {s["id"] for s in json.loads(sdd(plain, "suggest", "--json").stdout)["skills"]}
+    sdd(plain, *OFFLINE_INIT)
+    for name in ("impeccable", "playwright-skill", "design-taste-frontend"):     # finge as skills instaladas
+        (plain / ".agents/skills" / name).mkdir(parents=True)
+        (plain / ".agents/skills" / name / "SKILL.md").write_text(f"---\nname: {name}\ndescription: x\n---\n")
+    sdd(plain, "role", "add", "ui", "ui-reviewer", "--no-skills")
+    sdd(plain, "sync")
+    rev, ui = (plain / ".claude/agents/ui-reviewer.md").read_text(), (plain / ".claude/agents/ui.md").read_text()
+    assert frontmatter_skills(rev) == ["impeccable", "playwright-skill"]          # validador pré-carregado
+    assert "impeccable detect" in rev and "impeccable detect" in ui
+    assert "impeccable" not in frontmatter_skills(ui) and "- `design-taste-frontend` —" in ui   # ui: sob demanda
+
+
 def test_declared_stack_drives_suggestions_before_any_manifest():
     root = project()
     out = sdd(root, *OFFLINE_INIT).stdout

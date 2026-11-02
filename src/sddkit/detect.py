@@ -27,7 +27,8 @@ NODE_MAP.update({"bullmq": {"queue"}, "bull": {"queue"}, "bee-queue": {"queue"},
                  "amqplib": {"queue"}, "kafkajs": {"queue"}, "zod": {"zod"}, "fast-check": {"fast-check"},
                  "tailwindcss": {"tailwind"}, "@mui/material": {"mui"},
                  "@tanstack/react-query": {"tanstack-query"}, "@tanstack/react-router": {"tanstack-router"},
-                 "electron": {"desktop"}, "@tauri-apps/api": {"desktop"}})
+                 "electron": {"desktop"}, "@tauri-apps/api": {"desktop"},
+                 "three": {"threejs", "frontend"}, "@react-three/fiber": {"threejs", "react", "frontend"}})
 PY_PDF = {"pdfplumber", "pymupdf", "fitz", "pypdf", "pypdf2", "pdfminer.six", "pdfminer", "camelot-py",
           "tabula-py", "pytesseract", "pdf2image", "docling", "unstructured"}
 PY_MAP = {"bullmq": {"queue"}, "celery": {"queue"}, "rq": {"queue"}, "pydantic": {"pydantic"},
@@ -81,6 +82,7 @@ DECLARED = [
     (r"next\.?js", {"next", "react", "frontend", "backend"}), (r"react native", {"react-native", "react"}),
     (r"expo", {"expo", "react-native", "react"}), (r"react", {"react", "frontend"}),
     (r"vue|nuxt|svelte(kit)?|angular|astro|solid\.?js", {"frontend"}), (r"flutter", {"flutter"}),
+    (r"three\.?js|react[- ]three[- ]fiber|\br3f\b", {"threejs", "frontend"}),
     (r"swift(ui)?|xcode", {"apple"}), (r"tauri|electron", {"desktop"}),
     (r"express", {"backend", "express"}), (r"fastify|nest\.?js|hono|koa|trpc", {"backend"}),
     (r"fastapi|flask", {"backend", "python"}), (r"django", {"backend", "db", "python"}),

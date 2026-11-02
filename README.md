@@ -431,7 +431,7 @@ Um **subagent** é um agente com contexto limpo e um único trabalho. O orquestr
 ### Especialistas (`sddkit role add …`)
 | Papel | Tipo | Entra quando a tarefa toca… | Pré-carrega (se instaladas) | Sob demanda |
 |---|---|---|---|---|
-| `ui` | implementa | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/` | frontend-design, vercel-react-best-practices | vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
+| `ui` | implementa | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/` | frontend-design, vercel-react-best-practices | impeccable, design-taste-frontend, threejs-animation, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
 | `api` | implementa | `api/`, `routes/`, `services/`, `*.controller.*` | express, nodejs | claude-api, solid, clean-architecture, domain-driven-design |
 | `data` | implementa | `migrations/`, `prisma/`, `*.sql`, `models/` | domain-modeling, prisma | domain-driven-design, clean-architecture |
 | `qa` | implementa | `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, playwright-skill | webapp-testing, route-tester |
@@ -440,7 +440,7 @@ Um **subagent** é um agente com contexto limpo e um único trabalho. O orquestr
 | `event-module` | implementa | `modules/`, `domain/`, `events/` (lógica pura, sem IO) | property-based-testing | domain-driven-design, solid, clean-architecture |
 | `queue-worker` | implementa | `workers/`, `queues/`, `*.worker.ts` | — | clean-architecture, solid |
 | `bill-parser` | implementa | `parsers/`, `faturas/`, `layouts/` | — | — |
-| `ui-reviewer` | revisa (fim da história) | a história tocou UI | web-design-guidelines, playwright-skill | webapp-testing, apple-design, ui-ux-pro-max |
+| `ui-reviewer` | revisa (fim da história) | a história tocou UI | impeccable, playwright-skill | web-design-guidelines, webapp-testing, apple-design, ui-ux-pro-max, design-taste-frontend |
 | `security-reviewer` | revisa (convergência) | sempre, o diff da feature | differential-review, fp-check | variant-analysis |
 | `sast-scanner` | revisa (convergência) | sempre (Semgrep) | semgrep, fp-check | sarif-parsing |
 | `supply-chain-auditor` | revisa (convergência) | a feature mexeu em dependências | supply-chain-risk-auditor | — |
@@ -486,13 +486,13 @@ max_turns: 40
 |---|---|---|
 | **Starting** | afiar ideias e entender código existente | ★ grill-me · grill-with-docs · domain-modeling · ★ improve-codebase-architecture · planning-with-files |
 | **Coding** | padrões de código e frameworks | ★ ponytail · ponytail-extras · ★ react-best-practices · ★ react-native · ★ mcp-builder · ★ claude-api · Claude Code Kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs · **paradigma, só backend:** solid, clean-architecture, domain-driven-design |
-| **UI** | design e interface | ★ frontend-design · web-design-guidelines · impeccable · ★ apple-design · ★ ui-ux-pro-max · theme-factory |
+| **UI** | design e interface | ★ frontend-design · web-design-guidelines · ★ impeccable (validador) · ★ taste-skill · ★ apple-design · ★ ui-ux-pro-max · theme-factory · ★ threejs-animation |
 | **Testing** | testes e depuração | ★ tdd · ★ diagnosing-bugs · webapp-testing · ★ playwright · property-based-testing · cck-route-tester |
 | **Review** | revisão e verificação | ★ superpowers · superpowers-git · ★ spec-to-code-compliance |
 | **Security** | segurança | ★ security-review · ★ semgrep · ★ security-audit · ★ supply-chain-risk-auditor · ★ agentic-actions-auditor |
 | **Workflow** | git, commits e manutenção | ★ git-guardrails-claude-code · ★ setup-pre-commit · conventional-git · ★ caveman · ★ find-skills · ★ skill-creator · deploy-to-vercel |
 
-Só aparecem as que casam com o projeto: `cck-prisma` só se houver Prisma, `apple-design` só em app mobile/desktop, `security-audit` só com código existente (5+ arquivos).
+Só aparecem as que casam com o projeto: `cck-prisma` só se houver Prisma, `apple-design` só em app mobile/desktop, `threejs-animation` só com three.js / React Three Fiber, `security-audit` só com código existente (5+ arquivos).
 
 **Oficial × comunidade.** Skills de publicadores conhecidos (`anthropics`, `vercel-labs`, `cloudflare`, `trailofbits`) aparecem primeiro. As de **comunidade** saem com "⚠ revise antes de usar": uma skill é um texto que o agente obedece, então leia antes de confiar. Skills com efeitos fora do projeto (hooks, download de binário, upload, instalação global) trazem um aviso ⚠ na descrição.
 
