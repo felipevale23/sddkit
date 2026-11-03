@@ -188,6 +188,9 @@ def claude(root: Path, mode: str, generated: list[str]) -> list[str]:
             pre = d.setdefault("hooks", {}).setdefault("PreToolUse", [])
             if not any(h.get("command") == cmd for e in pre for h in e.get("hooks", [])):
                 pre.append({"matcher": "Write|Edit|MultiEdit", "hooks": [{"type": "command", "command": cmd}]})
+        if (root / ".agents" / "skills" / "impeccable").is_dir():
+            # impeccable procura PRODUCT.md/DESIGN.md na raiz; a fonte do kit é .agents/specs/ (valor do usuário vence)
+            d.setdefault("env", {}).setdefault("IMPECCABLE_CONTEXT_DIR", SPECS_DIR)
     _merge_json(root / ".claude" / "settings.json", mutate)
     log.append(".claude/settings.json: permissões + hook guard_secrets mesclados")
     return log
@@ -223,7 +226,8 @@ def gemini(root: Path, mode: str, generated: list[str]) -> list[str]:
 
 RUNNERS = {"claude": claude, "opencode": opencode, "gemini": gemini}
 
-DESIGN_SRC = Path(".agents") / "specs" / "DESIGN.md"
+SPECS_DIR = ".agents/specs"
+DESIGN_SRC = Path(SPECS_DIR) / "DESIGN.md"
 
 
 def design_md(root: Path, mode: str, generated: list[str]) -> list[str]:

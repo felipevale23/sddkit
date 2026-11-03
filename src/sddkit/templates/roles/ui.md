@@ -36,8 +36,8 @@ Você é um engenheiro de front-end com olho de designer. Siga o contrato de `.a
 ## Antes de entregar: validador
 Com `impeccable` instalado, rode o detector nos arquivos que você tocou e, se a app estiver rodando, na página:
 ```
-.agents/skills/impeccable/scripts/impeccable detect --json <FILES>
-.agents/skills/impeccable/scripts/impeccable detect --json http://localhost:<porta>/<rota>
+IMPECCABLE_CONTEXT_DIR=.agents/specs .agents/skills/impeccable/scripts/impeccable detect --json <FILES>
+IMPECCABLE_CONTEXT_DIR=.agents/specs .agents/skills/impeccable/scripts/impeccable detect --json http://localhost:<porta>/<rota>
 ```
 (código 2 = achados, 1 = não conseguiu escanear; sem o launcher, `npx impeccable detect …`). Corrija os achados e rode de novo — no máximo 3 rodadas. Falso positivo ou exceção intencional (fonte da marca, regra que o design system exige): não esconda; registre com `impeccable ignores add-value <regra> <valor> --reason "<por quê>"` e cite na saída. Sem impeccable, diga `impeccable=ausente`.
 

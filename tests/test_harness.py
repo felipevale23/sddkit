@@ -303,6 +303,21 @@ def test_design_md_publish_can_be_disabled():
     assert "DESIGN.md" not in json.loads((root / ".agents/sddkit.json").read_text())["generated"]
 
 
+def test_impeccable_context_dir_in_claude_env():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    settings = root / ".claude/settings.json"
+    assert "IMPECCABLE_CONTEXT_DIR" not in json.loads(settings.read_text()).get("env", {})   # sem impeccable
+    (root / ".agents/skills/impeccable").mkdir()
+    (root / ".agents/skills/impeccable/SKILL.md").write_text("---\nname: impeccable\ndescription: x\n---\n")
+    sdd(root, "sync")
+    assert json.loads(settings.read_text())["env"]["IMPECCABLE_CONTEXT_DIR"] == ".agents/specs"
+    d = json.loads(settings.read_text()); d["env"]["IMPECCABLE_CONTEXT_DIR"] = "docs"
+    settings.write_text(json.dumps(d))
+    sdd(root, "sync")
+    assert json.loads(settings.read_text())["env"]["IMPECCABLE_CONTEXT_DIR"] == "docs"      # valor do usuário vence
+
+
 def test_legacy_design_system_md_renamed():
     root = project()
     sdd(root, *OFFLINE_INIT)
