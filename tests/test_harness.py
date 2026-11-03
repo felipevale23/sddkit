@@ -233,9 +233,9 @@ def test_ui_validator_and_threejs_scope():
     three = project({"package.json": json.dumps({"dependencies": {"react": "19", "three": "0.170"}})})
     plain = project({"package.json": json.dumps({"dependencies": {"react": "19"}})})
     sk = {s["id"]: s for s in json.loads(sdd(three, "suggest", "--json").stdout)["skills"]}
-    assert {"impeccable", "taste-skill", "threejs-animation"} <= set(sk)
-    assert all(sk[i]["recommended"] for i in ("impeccable", "taste-skill", "threejs-animation"))
-    assert "threejs-animation" not in {s["id"] for s in json.loads(sdd(plain, "suggest", "--json").stdout)["skills"]}
+    assert {"impeccable", "taste-skill", "threejs-animation", "threejs"} <= set(sk)
+    assert all(sk[i]["recommended"] for i in ("impeccable", "taste-skill", "threejs-animation", "threejs"))
+    assert not {"threejs-animation", "threejs"} & {s["id"] for s in json.loads(sdd(plain, "suggest", "--json").stdout)["skills"]}
     sdd(plain, *OFFLINE_INIT)
     for name in ("impeccable", "playwright-skill", "design-taste-frontend"):     # finge as skills instaladas
         (plain / ".agents/skills" / name).mkdir(parents=True)
@@ -246,6 +246,45 @@ def test_ui_validator_and_threejs_scope():
     assert frontmatter_skills(rev) == ["impeccable", "playwright-skill"]          # validador pré-carregado
     assert "impeccable detect" in rev and "impeccable detect" in ui
     assert "impeccable" not in frontmatter_skills(ui) and "- `design-taste-frontend` —" in ui   # ui: sob demanda
+
+
+DESIGN = "---\nname: Faturas\ndescription: sóbrio\ncolors:\n  primary: \"#b8422e\"\n---\n\n# Design System: Faturas\n\n## Overview\nx\n"
+
+
+def test_design_system_exported_as_design_md():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    src, dst = root / ".agents/specs/design-system.md", root / "DESIGN.md"
+    assert "## Elevation & Depth" in src.read_text() and not dst.exists()      # template: não publica
+    src.write_text(DESIGN)
+    sdd(root, "sync")
+    assert dst.is_symlink() and dst.read_text() == DESIGN                      # link: fonte única
+    assert sdd(root, "sync", "--check", ok=False).returncode == 0
+    dst.unlink(); dst.write_text(DESIGN.replace("sóbrio", "outro"))             # ferramenta reescreveu como arquivo
+    r = sdd(root, "sync", ok=False)
+    assert r.returncode == 1 and "divergiu" in r.stdout                        # conflito: não apaga nem sobrescreve
+    assert "outro" in dst.read_text() and "sóbrio" in src.read_text()
+    sdd(root, "sync", ok=False)
+    assert dst.exists() and not dst.is_symlink()                               # nem no sync seguinte
+    sdd(root, "sync", "--force")
+    assert dst.is_symlink() and "sóbrio" in dst.read_text()                    # --force descarta e religa
+
+    adopt = project()                                                          # /impeccable document antes do template
+    sdd(adopt, *OFFLINE_INIT)
+    (adopt / "DESIGN.md").write_text(DESIGN)
+    assert "adotado" in sdd(adopt, "sync").stdout
+    assert (adopt / "DESIGN.md").is_symlink() and (adopt / ".agents/specs/design-system.md").read_text() == DESIGN
+
+    cp = project()                                                             # copy: cópia com hash
+    sdd(cp, *OFFLINE_INIT)
+    cfg = json.loads((cp / ".agents/sddkit.json").read_text()); cfg["mode"] = "copy"
+    (cp / ".agents/sddkit.json").write_text(json.dumps(cfg))
+    (cp / ".agents/specs/design-system.md").write_text(DESIGN)
+    sdd(cp, "sync")
+    d = cp / "DESIGN.md"
+    assert not d.is_symlink() and d.read_text() == DESIGN
+    d.write_text(DESIGN + "editado\n")
+    assert "editado à mão" in sdd(cp, "sync", ok=False).stdout and d.read_text().endswith("editado\n")
 
 
 def test_declared_stack_drives_suggestions_before_any_manifest():

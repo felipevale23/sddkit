@@ -169,7 +169,7 @@ def new_playbook(root: Path, name: str) -> Path:
 FILE_EXT = r"\.(md|json|ya?ml|toml|ts|tsx|js|mjs|cjs|py|sh|sql|css|html)$"
 # artefatos que existem por feature/skill, citados genericamente — não são referências a um arquivo do projeto
 GENERIC = {"spec.md", "plan.md", "research.md", "data-model.md", "tasks.md", "analysis.md", "quickstart.md",
-           "requirements.md", "SKILL.md", "README.md"}
+           "requirements.md", "SKILL.md", "README.md", "DESIGN.md", "PRODUCT.md"}
 
 
 def _refs(text: str) -> list[str]:

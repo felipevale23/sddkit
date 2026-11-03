@@ -113,12 +113,14 @@ faturas/
 │   ├── agents/               ← os subagents (papéis)
 │   ├── specs/                ← TUDO que descreve o sistema (vamos usar muito)
 │   │   ├── architecture.md  stack.md  coding-standards.md  design-system.md
+│   │   │                    ← design-system.md no formato DESIGN.md (tokens + 8 seções)
 │   │   ├── features.md       ← índice gerado automaticamente
 │   │   ├── features/         ← uma pasta por feature
 │   │   ├── changes/          ← change requests
 │   │   ├── playbooks/        ← guias reutilizáveis
 │   │   └── audits/           ← relatórios do /sdd-audit
 │   └── sddkit.json           ← configuração do sddkit
+├── DESIGN.md                 ← só com UI, depois de preencher design-system.md: link para ele (gerado)
 ├── .specify/                 ← o motor do Spec Kit (não mexa; só a constituição é sua)
 └── .claude/                  ← gerado para o Claude Code (não edite à mão)
 ```
@@ -412,6 +414,8 @@ Corpo: Contexto · Mudança proposta · Impacto (spec, contratos, dados, código
 | OpenCode (`opencode`) | `AGENTS.md` + `.agents/skills` | `.opencode/agents/*.md` |
 | Gemini CLI (`gemini`) | `.agents/skills` | `.gemini/settings.json` lendo `AGENTS.md` |
 
+**DESIGN.md (qualquer ferramenta).** Com `.agents/specs/design-system.md` preenchido (sem `[PREENCHER`), o `sync` o publica como `DESIGN.md` na raiz, no [formato DESIGN.md](https://github.com/google-labs-code/design.md) que impeccable, Stitch e afins leem — é dele que o `impeccable detect` tira a deriva do design system. Em modo link é um symlink (quem escreve em `DESIGN.md` escreve na fonte); em cópia, é protegido por hash. Um `DESIGN.md` que já existia com o template ainda vazio (ex.: `/impeccable document`) é adotado como fonte; um que diverge da fonte preenchida nunca é apagado: o `sync` avisa e para.
+
 No Windows, links viram cópias (`--copy`).
 
 ---
@@ -431,7 +435,7 @@ Um **subagent** é um agente com contexto limpo e um único trabalho. O orquestr
 ### Especialistas (`sddkit role add …`)
 | Papel | Tipo | Entra quando a tarefa toca… | Pré-carrega (se instaladas) | Sob demanda |
 |---|---|---|---|---|
-| `ui` | implementa | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/` | frontend-design, vercel-react-best-practices | impeccable, design-taste-frontend, threejs-animation, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
+| `ui` | implementa | `*.tsx/.vue/.svelte/.css`, `components/`, `pages/` | frontend-design, vercel-react-best-practices | impeccable, design-taste-frontend, threejs-* (13), vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router |
 | `api` | implementa | `api/`, `routes/`, `services/`, `*.controller.*` | express, nodejs | claude-api, solid, clean-architecture, domain-driven-design |
 | `data` | implementa | `migrations/`, `prisma/`, `*.sql`, `models/` | domain-modeling, prisma | domain-driven-design, clean-architecture |
 | `qa` | implementa | `### Tests`, `tests/`, `*.test.*`, `e2e/` | tdd, playwright-skill | webapp-testing, route-tester |
@@ -486,13 +490,13 @@ max_turns: 40
 |---|---|---|
 | **Starting** | afiar ideias e entender código existente | ★ grill-me · grill-with-docs · domain-modeling · ★ improve-codebase-architecture · planning-with-files |
 | **Coding** | padrões de código e frameworks | ★ ponytail · ponytail-extras · ★ react-best-practices · ★ react-native · ★ mcp-builder · ★ claude-api · Claude Code Kit (`cck-*`): ★ express, ★ nodejs, ★ prisma, ★ tailwindcss, ★ shadcn, ★ mui, ★ tanstack-query, ★ tanstack-router, react, nextjs · **paradigma, só backend:** solid, clean-architecture, domain-driven-design |
-| **UI** | design e interface | ★ frontend-design · web-design-guidelines · ★ impeccable (validador) · ★ taste-skill · ★ apple-design · ★ ui-ux-pro-max · theme-factory · ★ threejs-animation |
+| **UI** | design e interface | ★ frontend-design · web-design-guidelines · ★ impeccable (validador) · ★ taste-skill · ★ apple-design · ★ ui-ux-pro-max · theme-factory · ★ threejs-animation · ★ threejs (as outras 12) |
 | **Testing** | testes e depuração | ★ tdd · ★ diagnosing-bugs · webapp-testing · ★ playwright · property-based-testing · cck-route-tester |
 | **Review** | revisão e verificação | ★ superpowers · superpowers-git · ★ spec-to-code-compliance |
 | **Security** | segurança | ★ security-review · ★ semgrep · ★ security-audit · ★ supply-chain-risk-auditor · ★ agentic-actions-auditor |
 | **Workflow** | git, commits e manutenção | ★ git-guardrails-claude-code · ★ setup-pre-commit · conventional-git · ★ caveman · ★ find-skills · ★ skill-creator · deploy-to-vercel |
 
-Só aparecem as que casam com o projeto: `cck-prisma` só se houver Prisma, `apple-design` só em app mobile/desktop, `threejs-animation` só com three.js / React Three Fiber, `security-audit` só com código existente (5+ arquivos).
+Só aparecem as que casam com o projeto: `cck-prisma` só se houver Prisma, `apple-design` só em app mobile/desktop, `threejs-*` só com three.js / React Three Fiber, `security-audit` só com código existente (5+ arquivos).
 
 **Oficial × comunidade.** Skills de publicadores conhecidos (`anthropics`, `vercel-labs`, `cloudflare`, `trailofbits`) aparecem primeiro. As de **comunidade** saem com "⚠ revise antes de usar": uma skill é um texto que o agente obedece, então leia antes de confiar. Skills com efeitos fora do projeto (hooks, download de binário, upload, instalação global) trazem um aviso ⚠ na descrição.
 

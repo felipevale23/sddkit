@@ -509,6 +509,33 @@
       "recommended": true
     },
     {
+      "id": "threejs",
+      "group": "UI",
+      "source": "CloudAI-X/threejs-skills",
+      "skills": [
+        "threejs-fundamentals",
+        "threejs-react-three-fiber",
+        "threejs-geometry",
+        "threejs-materials",
+        "threejs-lighting",
+        "threejs-textures",
+        "threejs-loaders",
+        "threejs-interaction",
+        "threejs-shaders",
+        "threejs-postprocessing",
+        "threejs-performance",
+        "threejs-asset-pipeline"
+      ],
+      "phase": "/sdd-build (UI 3D)",
+      "why": "As outras 12 skills de three.js (WebGL e WebGPU/TSL): fundamentos, React Three Fiber + drei, geometria, materiais, luz, texturas, loaders (glTF/Draco/KTX2), interação, shaders, pós-processamento, performance e pipeline de assets. Só texto, sempre sob demanda (≈ 80k tokens somados). ⚠ threejs-asset-pipeline roda `npx @gltf-transform/cli` e aponta decoders para o jsDelivr.",
+      "when": {
+        "stacks": [
+          "threejs"
+        ]
+      },
+      "recommended": true
+    },
+    {
       "id": "theme-factory",
       "group": "UI",
       "source": "anthropics/skills",
@@ -872,7 +899,8 @@
         "cck-tanstack-router",
         "impeccable",
         "taste-skill",
-        "threejs-animation"
+        "threejs-animation",
+        "threejs"
       ]
     },
     {

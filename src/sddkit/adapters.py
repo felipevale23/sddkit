@@ -223,6 +223,43 @@ def gemini(root: Path, mode: str, generated: list[str]) -> list[str]:
 
 RUNNERS = {"claude": claude, "opencode": opencode, "gemini": gemini}
 
+DESIGN_SRC = Path(".agents") / "specs" / "design-system.md"
+
+
+def design_md(root: Path, mode: str, generated: list[str]) -> list[str]:
+    """Publica design-system.md como DESIGN.md na raiz (formato lido por impeccable, Stitch e afins).
+    Só depois de preenchido. `link`: symlink (quem escreve em DESIGN.md escreve na fonte); `copy`: cópia com hash.
+    Nunca apaga um DESIGN.md que não é do sddkit nem um que divergiu da fonte."""
+    src, dst = root / DESIGN_SRC, root / "DESIGN.md"
+    rel = "DESIGN.md"
+    adopted = []
+    if (src.is_file() and "[PREENCHER" in src.read_text(encoding="utf-8") and dst.is_file()
+            and not dst.is_symlink() and rel not in generated_prev and "[PREENCHER" not in dst.read_text(encoding="utf-8")):
+        # ex.: `/impeccable document` escreveu DESIGN.md antes do design-system.md ser preenchido: adota como fonte
+        if OUT.check:
+            OUT.changes.append(DESIGN_SRC.as_posix())
+            return []
+        OUT.text(src, dst.read_text(encoding="utf-8"), managed=False)
+        dst.unlink()
+        adopted = [f"DESIGN.md adotado como {DESIGN_SRC.as_posix()} (o template estava vazio)"]
+    if not src.is_file() or "[PREENCHER" in (text := src.read_text(encoding="utf-8")):
+        return []
+    if mode == "copy":
+        _write(dst, text, generated, root)
+        if rel not in generated and rel in OUT.prev:
+            generated.append(rel)  # editado à mão: o hash antigo segue protegendo; não é "obsoleto"
+        return adopted + [f"DESIGN.md ← {DESIGN_SRC.as_posix()} (cópia)"]
+    if dst.is_file() and not dst.is_symlink():
+        ours = rel in generated_prev
+        if not ours or (dst.read_text(encoding="utf-8") != text and not OUT.force):
+            why = ("já existe e não é do sddkit; leve o conteúdo para " if not ours
+                   else "virou arquivo e divergiu da fonte (uma ferramenta o reescreveu?); leve o que vale para ")
+            OUT.conflicts.append((rel, why + DESIGN_SRC.as_posix() + " e apague DESIGN.md"))
+            if ours:
+                generated.append(rel)  # senão a limpeza de obsoletos apagaria a versão divergente
+            return []
+    return adopted + [f"DESIGN.md → {DESIGN_SRC.as_posix()}: {_link_or_copy(src, dst, 'link', root, generated)}"]
+
 
 def run(root: Path, adapters: list[str], mode: str, previous: list[str], out: Out) -> tuple[list[str], list[str]]:
     global generated_prev, OUT
@@ -232,6 +269,7 @@ def run(root: Path, adapters: list[str], mode: str, previous: list[str], out: Ou
     # limpa arquivos gerados antes que não serão regenerados (ex.: papel removido)
     for a in adapters:
         log += [f"[{a}] {line}" for line in RUNNERS[a](root, mode, generated)]
+    log += design_md(root, mode, generated)
     for rel in sorted(generated_prev - set(generated)):
         p = root / rel
         if (p.is_symlink() or p.exists()) and out.remove(p):

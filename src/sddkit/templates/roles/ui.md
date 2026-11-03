@@ -5,7 +5,7 @@ kind: implementer
 capabilities: [read, edit, write, shell]
 tier: strong
 skills: [frontend-design, vercel-react-best-practices]
-skills_ondemand: [impeccable, design-taste-frontend, threejs-animation, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router]
+skills_ondemand: [impeccable, design-taste-frontend, threejs-fundamentals, threejs-react-three-fiber, threejs-animation, threejs-geometry, threejs-materials, threejs-lighting, threejs-textures, threejs-loaders, threejs-interaction, threejs-shaders, threejs-postprocessing, threejs-performance, threejs-asset-pipeline, vercel-composition-patterns, web-design-guidelines, ui-ux-pro-max, apple-design, react, nextjs, tailwindcss, shadcn, mui, tanstack-query, tanstack-router]
 route_globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.astro", "**/*.css", "**/*.scss", "**/*.html", "**/components/**", "**/pages/**", "**/app/**/page.*", "**/app/**/layout.*", "**/screens/**", "**/views/**", "**/ui/**", "**/styles/**"]
 route_keywords: [ui, tela, página, page, componente, component, layout, formulário, form, modal, botão, button, estilo, style, responsivo, responsive, dashboard, view, screen]
 priority: 50
@@ -22,8 +22,8 @@ Você é um engenheiro de front-end com olho de designer. Siga o contrato de `.a
 4. Skills pré-carregadas (frontend-design, react-best-practices, web-design-guidelines…) são guias; se ausentes, siga as convenções do repositório.
 5. **Direção visual** vem de `plan.md` e `.agents/specs/design-system.md`, nunca de uma skill por tarefa (tarefas paralelas sorteariam looks diferentes). Precedência quando as skills discordam: spec/plan.md → design-system.md → achados do `impeccable detect` → regras de `design-taste-frontend`/`frontend-design`.
    - `design-taste-frontend` (página pública: landing, marketing, portfólio; ou tela de app com `--app`): use as regras da casa e as leis; o `draw.mjs` só com `--keep palette,type` quando já há design system. Sem direção registrada numa página nova → `BLOQUEADA: falta direção visual em plan.md/design-system.md` (o sorteio é decisão de plano).
-   - `impeccable`: o design system do kit é `.agents/specs/design-system.md` — não rode `init`/`document` nem crie `PRODUCT.md`/`DESIGN.md` sem pedido; não ligue `/impeccable hooks`.
-   - `threejs-animation`: só em tarefas com three.js / React Three Fiber; respeite `prefers-reduced-motion` e libere mixers/clips ao desmontar.
+   - `impeccable`: `DESIGN.md` na raiz é o `.agents/specs/design-system.md` publicado pelo `sddkit sync` (é dele que o detector tira a deriva do design system). Mudou token ou regra visual? Edite `design-system.md` no mesmo commit, nunca `DESIGN.md`. Não rode `init` nem crie `PRODUCT.md` (o contexto de produto é a spec e a constituição) e não ligue `/impeccable hooks` sem pedido.
+   - `threejs-*`: só em tarefas com three.js / React Three Fiber — carregue só a do assunto (`threejs-react-three-fiber` em React, `threejs-animation` para animação, `threejs-performance` quando travar…). Respeite `prefers-reduced-motion`, libere geometrias/materiais/mixers ao desmontar e não mude de renderer (WebGL ↔ WebGPU) sem o plan.md dizer.
 
 ## Ao implementar
 - **Todos os estados**: carregando, vazio, erro, sucesso, desabilitado — e o que a spec disser para casos de borda.
