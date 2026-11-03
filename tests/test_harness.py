@@ -318,6 +318,17 @@ def test_impeccable_context_dir_in_claude_env():
     assert json.loads(settings.read_text())["env"]["IMPECCABLE_CONTEXT_DIR"] == "docs"      # valor do usuário vence
 
 
+def test_declined_skill_not_recommended():
+    root = project({"package.json": json.dumps({"dependencies": {"@mui/material": "6", "react": "18"}})})
+    sdd(root, *OFFLINE_INIT)
+    rec = lambda: [e["id"] for e in json.loads(sdd(root, "suggest", "--json").stdout)["skills"] if e["recommended"]]
+    assert "cck-mui" in rec()
+    cfg = json.loads((root / ".agents/sddkit.json").read_text()); cfg["declined"] = ["cck-mui"]
+    (root / ".agents/sddkit.json").write_text(json.dumps(cfg))
+    assert "cck-mui" not in rec()
+    assert "cck-mui" not in sdd(root, "doctor", ok=False).stdout
+
+
 def test_legacy_design_system_md_renamed():
     root = project()
     sdd(root, *OFFLINE_INIT)

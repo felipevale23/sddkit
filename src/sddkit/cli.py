@@ -351,10 +351,14 @@ def cmd_init(args) -> int:
 
 def suggestions(root: Path, info: dict) -> list[dict]:
     have = set(installed_skills(root))
+    declined = set(load_cfg(root).get("declined", []))  # removidas de propósito: init e doctor não as recomendam de novo
     out = []
     for e in catalog():
         if matches(e, info):
-            out.append({**e, "tier": tier(e["source"]), "installed": all(s in have for s in e["skills"])})
+            e = {**e, "tier": tier(e["source"]), "installed": all(s in have for s in e["skills"])}
+            if e["id"] in declined:
+                e["recommended"], e["declined"] = False, True
+            out.append(e)
     groups = json.loads((resources.files("sddkit") / "catalog.json").read_text(encoding="utf-8"))["groups"]
     return sorted(out, key=lambda e: (groups.index(e["group"]), e["tier"] != "oficial"))
 
@@ -395,7 +399,7 @@ def select_skills(args, root: Path, info: dict, cfg: dict, extra: list[str] | No
     sugs = suggestions(root, info)
     # skills sugeridas pelos papéis escolhidos viram recomendadas (se casam com a stack)
     for e in sugs:
-        if e["id"] in (extra or []):
+        if e["id"] in (extra or []) and not e.get("declined"):
             e["recommended"] = True
     pending = [e for e in sugs if not e["installed"]]
     rec = [e["id"] for e in pending if e["recommended"]]
@@ -858,7 +862,8 @@ def cmd_doctor(args) -> int:
     pend = [e["id"] for e in suggestions(root, info) if e["recommended"] and not e["installed"]]
     rpend = [r["id"] for r in role_suggestions(root, info) if r["recommended"] and not r["installed"]]
     check(not rpend, "papéis recomendados instalados" + (f" (faltam: {', '.join(rpend)})" if rpend else ""), "sddkit role add " + " ".join(rpend))
-    check(not pend, "skills recomendadas instaladas" + (f" (faltam: {', '.join(pend)})" if pend else ""), "sddkit add " + " ".join(pend))
+    check(not pend, "skills recomendadas instaladas" + (f" (faltam: {', '.join(pend)})" if pend else ""), "sddkit add " + " ".join(pend)
+          + f' (ou "declined": {json.dumps(pend)} no .agents/sddkit.json)')
     say("\nFonte única (.agents/ → arquivos gerados):")
     sync = do_sync(root, cfg, check=True)
     check(not sync.changes, "arquivos gerados em dia com .agents/", "sddkit sync")
