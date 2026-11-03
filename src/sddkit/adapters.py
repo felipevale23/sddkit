@@ -261,7 +261,8 @@ def design_md(root: Path, mode: str, generated: list[str]) -> list[str]:
     return adopted + [f"DESIGN.md → {DESIGN_SRC.as_posix()}: {_link_or_copy(src, dst, 'link', root, generated)}"]
 
 
-def run(root: Path, adapters: list[str], mode: str, previous: list[str], out: Out) -> tuple[list[str], list[str]]:
+def run(root: Path, adapters: list[str], mode: str, previous: list[str], out: Out,
+        publish_design: bool = True) -> tuple[list[str], list[str]]:
     global generated_prev, OUT
     generated_prev, OUT = set(previous), out
     generated: list[str] = []
@@ -269,7 +270,8 @@ def run(root: Path, adapters: list[str], mode: str, previous: list[str], out: Ou
     # limpa arquivos gerados antes que não serão regenerados (ex.: papel removido)
     for a in adapters:
         log += [f"[{a}] {line}" for line in RUNNERS[a](root, mode, generated)]
-    log += design_md(root, mode, generated)
+    if publish_design:  # `"design_md": false` no sddkit.json: o DESIGN.md fica só em .agents/specs/ (a limpeza abaixo tira o da raiz)
+        log += design_md(root, mode, generated)
     for rel in sorted(generated_prev - set(generated)):
         p = root / rel
         if (p.is_symlink() or p.exists()) and out.remove(p):

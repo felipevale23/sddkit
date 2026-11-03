@@ -470,7 +470,7 @@ def do_sync(root: Path, cfg: dict, check: bool = False, force: bool = False) -> 
     moved = specs.migrate_design(root, out)
     write_agents_md(root, out)
     specs.write_index(root, out)
-    gen, log = adapters.run(root, cfg["adapters"], cfg["mode"], cfg.get("generated", []), out)
+    gen, log = adapters.run(root, cfg["adapters"], cfg["mode"], cfg.get("generated", []), out, cfg.get("design_md", True))
     if not check:
         cfg["generated"], cfg["hashes"] = gen, dict(sorted(out.hashes.items()))
         save_cfg(root, cfg)

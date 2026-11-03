@@ -287,6 +287,22 @@ def test_design_system_exported_as_design_md():
     assert "editado à mão" in sdd(cp, "sync", ok=False).stdout and d.read_text().endswith("editado\n")
 
 
+def test_design_md_publish_can_be_disabled():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    (root / ".agents/specs/DESIGN.md").write_text(DESIGN)
+    sdd(root, "sync")
+    assert (root / "DESIGN.md").is_symlink()
+    cfg = json.loads((root / ".agents/sddkit.json").read_text()); cfg["design_md"] = False
+    (root / ".agents/sddkit.json").write_text(json.dumps(cfg))
+    assert sdd(root, "sync", "--check", ok=False).returncode == 1              # check acusa o link sobrando
+    sdd(root, "sync")
+    assert not (root / "DESIGN.md").exists() and not (root / "DESIGN.md").is_symlink()
+    assert (root / ".agents/specs/DESIGN.md").read_text() == DESIGN            # a fonte fica
+    assert sdd(root, "sync", "--check", ok=False).returncode == 0
+    assert "DESIGN.md" not in json.loads((root / ".agents/sddkit.json").read_text())["generated"]
+
+
 def test_legacy_design_system_md_renamed():
     root = project()
     sdd(root, *OFFLINE_INIT)
