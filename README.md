@@ -112,15 +112,15 @@ faturas/
 │   ├── skills/               ← skills: speckit-* (Spec Kit), sdd-* (sddkit), e as que você escolheu
 │   ├── agents/               ← os subagents (papéis)
 │   ├── specs/                ← TUDO que descreve o sistema (vamos usar muito)
-│   │   ├── architecture.md  stack.md  coding-standards.md  design-system.md
-│   │   │                    ← design-system.md no formato DESIGN.md (tokens + 8 seções)
+│   │   ├── architecture.md  stack.md  coding-standards.md  DESIGN.md
+│   │   │                    ← DESIGN.md: design system no formato DESIGN.md (tokens + 8 seções)
 │   │   ├── features.md       ← índice gerado automaticamente
 │   │   ├── features/         ← uma pasta por feature
 │   │   ├── changes/          ← change requests
 │   │   ├── playbooks/        ← guias reutilizáveis
 │   │   └── audits/           ← relatórios do /sdd-audit
 │   └── sddkit.json           ← configuração do sddkit
-├── DESIGN.md                 ← só com UI, depois de preencher design-system.md: link para ele (gerado)
+├── DESIGN.md                 ← só com UI, depois de preencher .agents/specs/DESIGN.md: link para ele (gerado)
 ├── .specify/                 ← o motor do Spec Kit (não mexa; só a constituição é sua)
 └── .claude/                  ← gerado para o Claude Code (não edite à mão)
 ```
@@ -414,7 +414,7 @@ Corpo: Contexto · Mudança proposta · Impacto (spec, contratos, dados, código
 | OpenCode (`opencode`) | `AGENTS.md` + `.agents/skills` | `.opencode/agents/*.md` |
 | Gemini CLI (`gemini`) | `.agents/skills` | `.gemini/settings.json` lendo `AGENTS.md` |
 
-**DESIGN.md (qualquer ferramenta).** Com `.agents/specs/design-system.md` preenchido (sem `[PREENCHER`), o `sync` o publica como `DESIGN.md` na raiz, no [formato DESIGN.md](https://github.com/google-labs-code/design.md) que impeccable, Stitch e afins leem — é dele que o `impeccable detect` tira a deriva do design system. Em modo link é um symlink (quem escreve em `DESIGN.md` escreve na fonte); em cópia, é protegido por hash. Um `DESIGN.md` que já existia com o template ainda vazio (ex.: `/impeccable document`) é adotado como fonte; um que diverge da fonte preenchida nunca é apagado: o `sync` avisa e para.
+**DESIGN.md (qualquer ferramenta).** Com `.agents/specs/DESIGN.md` preenchido (sem `[PREENCHER`), o `sync` o publica na raiz como `DESIGN.md`, no [formato DESIGN.md](https://github.com/google-labs-code/design.md) que impeccable, Stitch e afins leem — é dele que o `impeccable detect` tira a deriva do design system. Em modo link é um symlink (quem escreve em `DESIGN.md` escreve na fonte); em cópia, é protegido por hash. Um `DESIGN.md` que já existia com o template ainda vazio (ex.: `/impeccable document`) é adotado como fonte; um que diverge da fonte preenchida nunca é apagado: o `sync` avisa e para. Projetos da 0.8.x com `.agents/specs/design-system.md`: o `init`/`sync` o renomeia para `DESIGN.md` (as citações nos seus docs o `doctor` aponta).
 
 No Windows, links viram cópias (`--copy`).
 

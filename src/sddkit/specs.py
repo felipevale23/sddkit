@@ -1,7 +1,7 @@
 """Specs do projeto em .agents/specs/: features (Spec Kit), change requests, playbooks e docs centrais.
 
     .agents/specs/
-      architecture.md stack.md coding-standards.md design-system.md   ← docs centrais (preenchidos pela equipe)
+      architecture.md stack.md coding-standards.md DESIGN.md        ← docs centrais (preenchidos pela equipe)
       features.md                                                     ← índice gerado (`sddkit index`)
       features/NNN-slug/   spec.md plan.md tasks.md …                 ← uma pasta por feature (Spec Kit)
       changes/YYYY-MM-DD-slug.md                                      ← change requests (CHANGE-NNN)
@@ -21,8 +21,21 @@ from .frontmatter import parse
 SPECS = Path(".agents") / "specs"
 CR_STATUS = ("Proposed", "Approved", "Rejected", "In Progress", "Implemented")
 IDX_BEGIN, IDX_END = "<!-- sddkit:index:begin -->", "<!-- sddkit:index:end -->"
-CORE_DOCS = ("architecture.md", "stack.md", "coding-standards.md", "design-system.md")
+CORE_DOCS = ("architecture.md", "stack.md", "coding-standards.md", "DESIGN.md")
 PLACEHOLDER = "[PREENCHER"
+
+
+def migrate_design(root: Path, out=None) -> list[str]:
+    """Até a 0.8.x o design system era `design-system.md`: renomeia para `DESIGN.md` (o nome que impeccable,
+    Stitch e afins leem). Nunca sobrescreve um `DESIGN.md` que já esteja em .agents/specs/."""
+    old, new = root / SPECS / "design-system.md", root / SPECS / "DESIGN.md"
+    if not old.is_file() or new.exists():
+        return []
+    if out is not None and out.check:
+        out.changes.append((SPECS / "DESIGN.md").as_posix())
+        return []
+    old.rename(new)
+    return [f"{SPECS.as_posix()}/design-system.md → {SPECS.as_posix()}/DESIGN.md"]
 
 
 def slug(s: str) -> str:

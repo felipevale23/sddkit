@@ -84,7 +84,7 @@ def test_init_offline_creates_layout_and_is_idempotent():
     assert "<!-- sddkit:begin -->" in agents and "sdd-change" in agents
     claude = (root / "CLAUDE.md").read_text()
     assert "Notas minhas." in claude and "@AGENTS.md" in claude
-    for f in ("architecture.md", "stack.md", "coding-standards.md", "design-system.md", "features.md",
+    for f in ("architecture.md", "stack.md", "coding-standards.md", "DESIGN.md", "features.md",
               "features/.gitkeep", "changes/.gitkeep", "playbooks/.gitkeep"):
         assert (root / ".agents/specs" / f).exists(), f
     for r in ("sdd-analyst", "sdd-converger", "sdd-implementer", "sdd-researcher"):
@@ -254,7 +254,7 @@ DESIGN = "---\nname: Faturas\ndescription: sóbrio\ncolors:\n  primary: \"#b8422
 def test_design_system_exported_as_design_md():
     root = project()
     sdd(root, *OFFLINE_INIT)
-    src, dst = root / ".agents/specs/design-system.md", root / "DESIGN.md"
+    src, dst = root / ".agents/specs/DESIGN.md", root / "DESIGN.md"
     assert "## Elevation & Depth" in src.read_text() and not dst.exists()      # template: não publica
     src.write_text(DESIGN)
     sdd(root, "sync")
@@ -273,18 +273,35 @@ def test_design_system_exported_as_design_md():
     sdd(adopt, *OFFLINE_INIT)
     (adopt / "DESIGN.md").write_text(DESIGN)
     assert "adotado" in sdd(adopt, "sync").stdout
-    assert (adopt / "DESIGN.md").is_symlink() and (adopt / ".agents/specs/design-system.md").read_text() == DESIGN
+    assert (adopt / "DESIGN.md").is_symlink() and (adopt / ".agents/specs/DESIGN.md").read_text() == DESIGN
 
     cp = project()                                                             # copy: cópia com hash
     sdd(cp, *OFFLINE_INIT)
     cfg = json.loads((cp / ".agents/sddkit.json").read_text()); cfg["mode"] = "copy"
     (cp / ".agents/sddkit.json").write_text(json.dumps(cfg))
-    (cp / ".agents/specs/design-system.md").write_text(DESIGN)
+    (cp / ".agents/specs/DESIGN.md").write_text(DESIGN)
     sdd(cp, "sync")
     d = cp / "DESIGN.md"
     assert not d.is_symlink() and d.read_text() == DESIGN
     d.write_text(DESIGN + "editado\n")
     assert "editado à mão" in sdd(cp, "sync", ok=False).stdout and d.read_text().endswith("editado\n")
+
+
+def test_legacy_design_system_md_renamed():
+    root = project()
+    sdd(root, *OFFLINE_INIT)
+    specs_dir = root / ".agents/specs"
+    (specs_dir / "DESIGN.md").rename(specs_dir / "design-system.md")          # projeto da 0.8.x
+    (specs_dir / "design-system.md").write_text(DESIGN)
+    (root / "DESIGN.md").symlink_to(".agents/specs/design-system.md")         # link que a 0.8.x publicava
+    assert sdd(root, "sync", "--check", ok=False).returncode == 1              # check acusa, não move
+    assert (specs_dir / "design-system.md").exists()
+    sdd(root, *OFFLINE_INIT)                                                   # init migra antes do scaffold
+    assert not (specs_dir / "design-system.md").exists() and (specs_dir / "DESIGN.md").read_text() == DESIGN
+    assert (root / "DESIGN.md").is_symlink() and (root / "DESIGN.md").read_text() == DESIGN
+    (specs_dir / "design-system.md").write_text("velho\n")                    # os dois: nunca sobrescreve
+    sdd(root, "sync")
+    assert (specs_dir / "DESIGN.md").read_text() == DESIGN and (specs_dir / "design-system.md").exists()
 
 
 def test_declared_stack_drives_suggestions_before_any_manifest():

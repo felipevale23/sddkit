@@ -22,7 +22,7 @@ Se a sua ferramenta não aceita `/comando`, leia e siga `.agents/skills/<comando
 - `.agents/agents/` — papéis de subagent em formato neutro: núcleo SDD (`sdd-researcher`, `sdd-implementer`, `sdd-analyst`, `sdd-converger`) + especialistas (`ui`, `api`, `data`, `qa`… e revisores `ui-reviewer`, `security-reviewer`). Lista completa no fim deste arquivo.
 - `.specify/` — motor do Spec Kit (scripts, templates, `memory/constitution.md`).
 - `.agents/specs/` — specs do projeto (índice em `.agents/specs/features.md`, gerado por `sddkit index`):
-  - `architecture.md` · `stack.md` · `coding-standards.md` · `design-system.md` — docs centrais; leia antes de planejar e atualize no mesmo commit da mudança.
+  - `architecture.md` · `stack.md` · `coding-standards.md` · `DESIGN.md` — docs centrais; leia antes de planejar e atualize no mesmo commit da mudança.
   - `features/NNN-slug/` ↔ branch `NNN-slug`: `spec.md` · `plan.md` · `research.md` · `data-model.md` · `contracts/` · `tasks.md` · `analysis.md` · `checklists/`.
   - `changes/YYYY-MM-DD-slug.md` — change requests `CHANGE-NNN` (`sddkit change new`); status: Proposed · Approved · Rejected · In Progress · Implemented.
   - `playbooks/` — guias reutilizáveis (`sddkit playbook new`).

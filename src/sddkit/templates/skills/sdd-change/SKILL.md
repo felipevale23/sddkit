@@ -22,7 +22,7 @@ Diga a classificação em 1 linha, com o motivo.
 3. Fim. Sem CR e sem CHANGELOG (o commit convencional basta).
 
 ## 3. Tipo B — change request
-1. **Contexto:** leia `.specify/memory/constitution.md`, `.agents/specs/architecture.md`, `stack.md`, e da feature afetada (`.agents/specs/features/<NNN-slug>/`) `spec.md` e `tasks.md`. `coding-standards.md` e `design-system.md` só se a mudança tocar código/UI desses temas.
+1. **Contexto:** leia `.specify/memory/constitution.md`, `.agents/specs/architecture.md`, `stack.md`, e da feature afetada (`.agents/specs/features/<NNN-slug>/`) `spec.md` e `tasks.md`. `coding-standards.md` e `DESIGN.md` só se a mudança tocar código/UI desses temas.
 2. **Crie o CR:** `sddkit change new "<título>" --feature <NNN|none>` (gera `.agents/specs/changes/YYYY-MM-DD-slug.md` com o próximo `CHANGE-NNN` livre). Sem o `sddkit` no PATH: copie o frontmatter de um CR existente e use o maior id + 1 — **nunca** reutilize um id.
 3. **Preencha** contexto, mudança proposta (citando os FR/SC que mudam), impacto, decisões e critérios de aceite. Mudança que viola a constituição → diga qual princípio e proponha a emenda junto.
 4. **Gate humano:** mostre o CR em ≤ 15 linhas e pare. Só siga com "aprovado"/"approved" explícito (`--auto` não pula este gate). Ajustes pedidos → edite e mostre de novo. Recusado → `status: Rejected` e fim.

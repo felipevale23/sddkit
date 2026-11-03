@@ -294,6 +294,8 @@ def cmd_init(args) -> int:
     stale = [n for n in installed_roles(root) if n in cat_ids]
     if stale:  # papéis do catálogo já instalados: atualiza os intocados
         install_roles(root, stale, cfg, force=args.force_templates, quiet=True)
+    for line in specs.migrate_design(root):  # antes do scaffold, senão nasce um DESIGN.md vazio ao lado
+        say(f"• Specs: {line}")
     created = scaffold_specs(root)
     say(f"• Specs: {specs.SPECS}/ " + (f"criado ({len(created)} arquivo(s)) — preencha architecture.md, stack.md…" if created else "já existe — mantido"))
 
@@ -465,6 +467,7 @@ def install(root: Path, ids: list[str], cfg: dict) -> bool:
 def do_sync(root: Path, cfg: dict, check: bool = False, force: bool = False) -> Out:
     """Regenera AGENTS.md, índice e adaptadores a partir de .agents/. `check`: só compara, não escreve."""
     out = outmod.OUT = Out(root, cfg, check=check, force=force)
+    moved = specs.migrate_design(root, out)
     write_agents_md(root, out)
     specs.write_index(root, out)
     gen, log = adapters.run(root, cfg["adapters"], cfg["mode"], cfg.get("generated", []), out)
@@ -472,7 +475,7 @@ def do_sync(root: Path, cfg: dict, check: bool = False, force: bool = False) -> 
         cfg["generated"], cfg["hashes"] = gen, dict(sorted(out.hashes.items()))
         save_cfg(root, cfg)
         say("\n• AGENTS.md, índice de specs e adaptadores sincronizados" + (f" ({len(out.changes)} arquivo(s) alterado(s))" if out.changes else " (nada mudou)"))
-        for line in log:
+        for line in moved + log:
             say(f"  {line}")
         for line in out.report():
             say(line)

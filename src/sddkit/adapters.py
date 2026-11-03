@@ -223,11 +223,11 @@ def gemini(root: Path, mode: str, generated: list[str]) -> list[str]:
 
 RUNNERS = {"claude": claude, "opencode": opencode, "gemini": gemini}
 
-DESIGN_SRC = Path(".agents") / "specs" / "design-system.md"
+DESIGN_SRC = Path(".agents") / "specs" / "DESIGN.md"
 
 
 def design_md(root: Path, mode: str, generated: list[str]) -> list[str]:
-    """Publica design-system.md como DESIGN.md na raiz (formato lido por impeccable, Stitch e afins).
+    """Publica .agents/specs/DESIGN.md como DESIGN.md na raiz (formato lido por impeccable, Stitch e afins).
     Só depois de preenchido. `link`: symlink (quem escreve em DESIGN.md escreve na fonte); `copy`: cópia com hash.
     Nunca apaga um DESIGN.md que não é do sddkit nem um que divergiu da fonte."""
     src, dst = root / DESIGN_SRC, root / "DESIGN.md"
@@ -235,7 +235,7 @@ def design_md(root: Path, mode: str, generated: list[str]) -> list[str]:
     adopted = []
     if (src.is_file() and "[PREENCHER" in src.read_text(encoding="utf-8") and dst.is_file()
             and not dst.is_symlink() and rel not in generated_prev and "[PREENCHER" not in dst.read_text(encoding="utf-8")):
-        # ex.: `/impeccable document` escreveu DESIGN.md antes do design-system.md ser preenchido: adota como fonte
+        # ex.: `/impeccable document` escreveu DESIGN.md na raiz antes do .agents/specs/DESIGN.md ser preenchido: adota como fonte
         if OUT.check:
             OUT.changes.append(DESIGN_SRC.as_posix())
             return []
@@ -254,7 +254,7 @@ def design_md(root: Path, mode: str, generated: list[str]) -> list[str]:
         if not ours or (dst.read_text(encoding="utf-8") != text and not OUT.force):
             why = ("já existe e não é do sddkit; leve o conteúdo para " if not ours
                    else "virou arquivo e divergiu da fonte (uma ferramenta o reescreveu?); leve o que vale para ")
-            OUT.conflicts.append((rel, why + DESIGN_SRC.as_posix() + " e apague DESIGN.md"))
+            OUT.conflicts.append((rel, why + DESIGN_SRC.as_posix() + " e apague o DESIGN.md da raiz"))
             if ours:
                 generated.append(rel)  # senão a limpeza de obsoletos apagaria a versão divergente
             return []

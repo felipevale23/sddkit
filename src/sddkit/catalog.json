@@ -445,7 +445,7 @@
         "design-taste-frontend"
       ],
       "phase": "/speckit-plan (direção visual) e /sdd-build (UI)",
-      "why": "Direção de arte anti-\"cara de IA\" para páginas públicas (landing, marketing, portfólio) e telas de app: sorteia direções pesquisadas (tipo, paleta, composição), regras da casa e um inspetor em navegador real (lint.mjs/inspect.mjs). Sobrepõe frontend-design; no kit, a direção é decidida uma vez (plan.md/design-system.md) e o ui usa `--keep palette,type`. ⚠ Scripts Node 22+ abrem Chrome headless local (CDP); assets.mjs busca imagens em acervos abertos (Openverse, Wikimedia, Met, NASA…); grava histórico em ~/.taste-skill e arquivos em .taste-skill/.",
+      "why": "Direção de arte anti-\"cara de IA\" para páginas públicas (landing, marketing, portfólio) e telas de app: sorteia direções pesquisadas (tipo, paleta, composição), regras da casa e um inspetor em navegador real (lint.mjs/inspect.mjs). Sobrepõe frontend-design; no kit, a direção é decidida uma vez (plan.md/DESIGN.md) e o ui usa `--keep palette,type`. ⚠ Scripts Node 22+ abrem Chrome headless local (CDP); assets.mjs busca imagens em acervos abertos (Openverse, Wikimedia, Met, NASA…); grava histórico em ~/.taste-skill e arquivos em .taste-skill/.",
       "when": {
         "stacks": [
           "frontend"
