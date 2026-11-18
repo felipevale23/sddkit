@@ -1,6 +1,6 @@
 ---
 name: sdd-change
-description: Mudança em sistema que já existe, do pedido ao CHANGELOG — classifica (Tipo A local × Tipo B estrutural), cria o change request com id sequencial, espera aprovação, atualiza a spec da feature antes do código, implementa (direto ou via /sdd-build), faz o drift report e registra no CHANGELOG. Use para bug, ajuste ou evolução de feature existente; feature nova é /sdd-feature.
+description: Mudança em sistema que já existe, do pedido ao CHANGELOG — classifica (Tipo A local × Tipo B estrutural), cria o change request com id sequencial, espera aprovação, atualiza a spec da feature antes do código, implementa (direto ou via /sdd-build), faz o drift report e registra no CHANGELOG. Use para ajuste ou evolução de feature existente; bug (código que contraria o que já está escrito) é /sdd-fix; feature nova é /sdd-feature.
 argument-hint: "<o que mudar> [--feature NNN] [--auto]"
 ---
 
@@ -9,8 +9,9 @@ argument-hint: "<o que mudar> [--feature NNN] [--auto]"
 Entrada: `$ARGUMENTS`. Você é o **orquestrador**.
 
 ## 1. Classifique antes de qualquer coisa
-- **Tipo A — local:** bug, ajuste visual, texto, refatoração local, tipagem, filtro/estado, edição de componente. Não altera requisito, API, contrato, evento, schema nem arquitetura.
+- **Tipo A — local:** ajuste visual, texto, refatoração local, tipagem, filtro/estado, edição de componente. Não altera requisito, API, contrato, evento, schema nem arquitetura.
 - **Tipo B — estrutural:** endpoint/integração nova, mudança de contrato, evento, schema, arquitetura ou regra de negócio.
+- **Bug** (o código contraria spec, coding-standards, Mapa do código, DESIGN.md ou stack.md já escritos) → pare e use `/sdd-fix`.
 - **Capacidade nova inteira** (novas user stories, nova área do produto) → pare e use `/sdd-feature`.
 - Na dúvida, **Tipo B**: revisar à toa custa pouco; pular a revisão de uma mudança estrutural custa caro.
 

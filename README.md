@@ -4,7 +4,7 @@
 
 Ele não substitui o seu agente: ele **arruma a casa** para que qualquer agente trabalhe do mesmo jeito, com as mesmas regras, no mesmo lugar.
 
-> **Em uma frase:** `sddkit init` uma vez; depois, no agente, `/sdd-feature` para criar, `/sdd-build` para implementar, `/sdd-change` para mudar e `/sdd-audit` para caçar bugs.
+> **Em uma frase:** `sddkit init` uma vez; depois, no agente, `/sdd-feature` para criar, `/sdd-build` para implementar, `/sdd-fix` para corrigir bugs, `/sdd-change` para mudar e `/sdd-audit` para caçar bugs.
 
 ---
 
@@ -229,18 +229,27 @@ Teste o MVP. Gostou? **Aprove** (2º gate) e rode o resto:
 
 > 💡 `--phase 3` roda só uma fase; `--max-parallel 2` limita o paralelismo; `--no-commit` deixa os commits com você.
 
-### Passo 7 — Mudar o que já existe
+### Passo 7 — Corrigir e mudar o que já existe
 
-Dias depois, chegam pedidos. Para **qualquer mudança** em algo que existe:
+Você testa à mão e acha **bugs**: código que contraria o que já está escrito (spec, `coding-standards.md`, `## Mapa do código`, `DESIGN.md`):
 
 ```text
-/sdd-change O PDF da fatura está saindo sem o logo
+/sdd-fix O PDF da fatura está saindo sem o logo
+/sdd-fix O FaturaCard foi criado em src/components/novo/ em vez de src/features/billing/
+```
+
+O agente aponta a regra violada, reproduz com uma checagem que falha (teste, `tsc --noEmit`, lint), corrige no menor ponto e registra numa fase `Bug fixes` do `tasks.md`. Depois **fecha a brecha**: acrescenta o que teria pegado o bug (ex.: typecheck no comando de verificação, a pasta que faltava no Mapa do código). Sem CR. Se nenhuma regra escrita cobre o caso, não é bug: é `/sdd-change`.
+
+Dias depois, chegam pedidos de **mudança**:
+
+```text
+/sdd-change O botão de pagar fica verde em vez de azul
 /sdd-change Fatura passa a aceitar parcelamento em até 3x --feature 001
 ```
 
 O agente **classifica** antes de agir:
 
-- **Tipo A — local** (o logo): bug, ajuste visual, texto, refatoração local. Não muda requisito, API, contrato, schema nem arquitetura. Ele escreve um teste que falha, corrige e pronto. Sem burocracia.
+- **Tipo A — local** (o botão): ajuste visual, texto, refatoração local. Não muda requisito, API, contrato, schema nem arquitetura. Ele escreve um teste que falha, corrige e pronto. Sem burocracia.
 - **Tipo B — estrutural** (parcelamento): muda regra de negócio, API, schema… Aí o fluxo é:
 
 ```
@@ -309,7 +318,8 @@ sddkit init                    # detecta a stack pelo código e sugere papéis/s
 | afiar uma ideia ainda vaga | `/grill-me` ou `/sdd-feature … --grill` |
 | criar uma feature | `/sdd-feature <descrição> --stack <…>` |
 | implementar a feature atual | `/sdd-build --mvp`, depois `/sdd-build` |
-| corrigir um bug ou ajustar algo | `/sdd-change <o que mudar>` |
+| corrigir um bug achado à mão | `/sdd-fix <o bug>` |
+| ajustar algo que já existe | `/sdd-change <o que mudar>` |
 | mudar uma regra de negócio ou API | `/sdd-change <…> --feature NNN` (vira CR com aprovação) |
 | criar um CR à mão | `sddkit change new "título" --feature 001` |
 | ver o estado de features e CRs | abrir `.agents/specs/features.md` (ou `sddkit index` para atualizar) |
@@ -653,6 +663,7 @@ sddkit ci [--audit] [--force]                  # workflows do GitHub: checagem a
 | `/speckit-constitution <princípios>` | criar/atualizar a constituição | — |
 | `/sdd-feature <descrição>` | da ideia ao `tasks.md` revisado | `--stack "…"` · `--grill` / `--no-grill` · `--auto` |
 | `/sdd-build` | implementar em ondas com especialistas e revisores | `--mvp` · `--phase N` · `--max-parallel K` · `--no-commit` |
+| `/sdd-fix <o bug>` | corrigir código que contraria spec ou padrões, e fechar a brecha | `--feature NNN` |
 | `/sdd-change <o que mudar>` | mudar algo existente (Tipo A ou CR Tipo B) | `--feature NNN` |
 | `/sdd-audit` | caçar bugs no repositório inteiro, sem editar | `--quick` · `--scope <caminho>` · `--features NNN,NNN` · `--issue` |
 | `/grill-me` | interrogatório para afiar uma ideia | — |

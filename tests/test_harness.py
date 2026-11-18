@@ -82,6 +82,7 @@ def test_init_offline_creates_layout_and_is_idempotent():
     agents = (root / "AGENTS.md").read_text()
     assert "Regra da casa: nada de any." in agents                    # texto do usuário preservado
     assert "<!-- sddkit:begin -->" in agents and "sdd-change" in agents
+    assert "/sdd-fix" in agents and (root / ".agents/skills/sdd-fix/SKILL.md").exists()
     claude = (root / "CLAUDE.md").read_text()
     assert "Notas minhas." in claude and "@AGENTS.md" in claude
     for f in ("architecture.md", "stack.md", "coding-standards.md", "DESIGN.md", "features.md",

@@ -2,7 +2,7 @@
 
 Este repositório segue SDD com GitHub Spec Kit. **Nenhum código de produção sem spec, plano e tarefas.** A especificação é a fonte da verdade; o código deriva dela.
 
-**Classifique toda tarefa primeiro:** Tipo A (local: bug, ajuste visual, texto, refatoração local — não muda requisito, API, contrato, evento, schema nem arquitetura) segue direto com teste; Tipo B (estrutural) exige change request aprovado. Na dúvida, Tipo B.
+**Classifique toda tarefa primeiro:** Bug (código contraria spec ou padrão já escrito) vai pelo `/sdd-fix`; Tipo A (local: ajuste visual, texto, refatoração local — não muda requisito, API, contrato, evento, schema nem arquitetura) segue direto com teste; Tipo B (estrutural) exige change request aprovado. Na dúvida, Tipo B.
 
 ## Fluxo
 | Quando | Comando |
@@ -11,7 +11,8 @@ Este repositório segue SDD com GitHub Spec Kit. **Nenhum código de produção 
 | Ideia ainda vaga | `/grill-me` (se instalada) — ou `/sdd-feature ... --grill` |
 | Feature nova | `/sdd-feature <descrição> --stack <...>` → grill? → specify → clarify → plan → tasks → análise |
 | Implementar | `/sdd-build --mvp`, depois `/sdd-build` |
-| Mudar o que já existe (bug, ajuste, evolução) | `/sdd-change <o que mudar>` → Tipo A direto · Tipo B: CR → aprovação → spec → código → drift report → CHANGELOG |
+| Corrigir bug achado à mão (código contraria spec, padrão, Mapa do código ou DESIGN.md) | `/sdd-fix <o bug>` → regra violada → checagem que falha → correção mínima → brecha fechada (typecheck, lint, Mapa) |
+| Mudar o que já existe (ajuste, evolução) | `/sdd-change <o que mudar>` → Tipo A direto · Tipo B: CR → aprovação → spec → código → drift report → CHANGELOG |
 | Caçar bugs no repositório inteiro (periódico, antes de release) | `/sdd-audit` → checagens determinísticas + subagents por área + conformidade spec × código → relatório em `.agents/specs/audits/` e CRs propostos (não edita código) |
 
 Fases avulsas: `/speckit-specify`, `-clarify`, `-plan`, `-checklist`, `-tasks`, `-analyze`, `-implement`, `-converge`, `-taskstoissues`.

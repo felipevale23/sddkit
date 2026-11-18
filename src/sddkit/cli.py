@@ -344,7 +344,8 @@ def cmd_init(args) -> int:
     say("  /speckit-constitution <princípios do projeto>")
     say("  /sdd-feature <descrição da feature> --stack <...>   (use --grill para afiar a ideia antes)")
     say("  /sdd-build --mvp")
-    say("  /sdd-change <o que mudar>   (bug, ajuste ou evolução de algo que já existe)")
+    say("  /sdd-fix <o bug>   (código que contraria a spec ou os padrões, achado à mão)")
+    say("  /sdd-change <o que mudar>   (ajuste ou evolução de algo que já existe)")
     say("  (papéis extras: sddkit role list · sddkit role add <papel> · sddkit role new <nome>)")
     return 0
 

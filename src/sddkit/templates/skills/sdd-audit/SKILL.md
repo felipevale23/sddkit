@@ -66,7 +66,7 @@ CRITICAL n · HIGH n · MEDIUM n · LOW n · novos n · resolvidos desde a últi
 
 ## 6. Encaminhamento (sem implementar)
 - Achado CRITICAL/HIGH confirmado que exige mudança estrutural (API, contrato, schema, regra) → `sddkit change new "<título>" --feature <NNN|none> --priority <High|Critical>`; preencha contexto e mudança proposta citando o relatório. Fica `Proposed`: o usuário decide.
-- Achado local (Tipo A) → liste no relatório como próximo `/sdd-change`.
+- Bug local (código contraria regra já escrita) → liste no relatório como próximo `/sdd-fix`; ajuste local (Tipo A) → próximo `/sdd-change`.
 - `--issue` → `gh issue create --title "Auditoria AAAA-MM-DD: n CRITICAL, n HIGH" --body-file <relatório>` (sem `gh` autenticado: avise e pare aqui).
 
 ## Relatório final ao usuário (≤ 10 linhas)
